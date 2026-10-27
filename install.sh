@@ -127,6 +127,15 @@ if [ -n "$PENDIENTES" ]; then
   [ "$(uname -s)" = "Darwin" ] && [ -z "$GESTOR" ] && aviso "  (Con Homebrew, https://brew.sh, se instalan con un solo comando.)"
 fi
 
+# ---- Que «empezar», «iniciar» o «configurar» activen el skill
+for c in python3 python; do
+  if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)' 2>/dev/null; then
+    aviso ""
+    "$c" "$DESTINO_REPO/$DESTINO_REL/scripts/activar.py" --registrar --raiz "$DESTINO_REPO" || true
+    break
+  fi
+done
+
 if [ ! -d "$DESTINO_REPO/.git" ]; then
   aviso "Ojo: esta carpeta no es un repositorio git. Funciona igual, pero te conviene versionarla (git init)."
 fi

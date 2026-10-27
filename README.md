@@ -26,7 +26,7 @@ curl -fsSL https://raw.githubusercontent.com/davidortiz-ops/espacio-trabajo-clau
 irm https://raw.githubusercontent.com/davidortiz-ops/espacio-trabajo-claude/main/install.ps1 | iex
 ```
 
-Luego abre Claude Code en esa carpeta y escribe **«empezar»**. Eso es todo.
+Luego abre Claude Code en esa carpeta y escribe **«empezar»** (o «iniciar», «configurar», «empecemos»). Eso es todo.
 
 ## Por qué vas a querer tenerlo
 

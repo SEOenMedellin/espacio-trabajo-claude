@@ -29,7 +29,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import comun  # noqa: E402
 
-PLANTILLA = comun.SKILL / "assets" / "plantilla"
+PLANTILLA = comun.PLANTILLAS
 VAR = re.compile(r"^[A-Z][A-Z0-9_]*$")
 FECHA = re.compile(r"^\d{2}-(" + "|".join(comun.MESES) + r")-\d{4}$")
 GITIGNORE = ["credenciales/*", "!credenciales/.env.example", ".env", f"{comun.ESTADO}/",
@@ -355,7 +355,7 @@ def bloque_claude(raiz: Path, v: dict, rep: Reporte, seco: bool, forzar: bool) -
 
 
 def convenciones(raiz: Path, v: dict, rep: Reporte, seco: bool, forzar: bool) -> None:
-    for f in sorted((PLANTILLA / "convenciones").glob("*.md")):
+    for f in sorted(comun.CONVENCIONES.glob("*.md")):
         destino = raiz / comun.DOCS / f.name
         texto = render(f.read_text(encoding="utf-8"), v)
         if destino.exists() and forzar and destino.read_text(encoding="utf-8") != texto:

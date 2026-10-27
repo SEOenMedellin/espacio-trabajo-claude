@@ -33,6 +33,17 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{PY}} \"$CLAUDE_PROJECT_DIR/{{SKILL_REL}}/scripts/activar.py\"",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   }
 }

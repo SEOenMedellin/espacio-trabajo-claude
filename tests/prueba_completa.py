@@ -147,6 +147,18 @@ if "creado" in r.stdout.replace("ya existía", ""):
 st = json.loads((A / ".claude/settings.json").read_text())
 if "telemetria" not in json.dumps(st) or "orden_check" not in json.dumps(st):
     fallos.append("settings no conservó la telemetría o no agregó hooks")
+if "activar.py" not in json.dumps(st.get("hooks", {}).get("UserPromptSubmit", [])):
+    fallos.append("montar no registró el hook de activación")
+
+# activación con «empezar», «iniciar», «configurar»…
+for texto, debe in [("empezar", True), ("Iniciar", True), ("¡Empecemos!", True), ("configurar", True),
+                    ("configura mi espacio", True), ("hola, quiero empezar", True), ("primeros pasos", True),
+                    ("soy nuevo en el proyecto", True), ("setup", True), ("configura el linter", False),
+                    ("empezar el informe mensual", False), ("inicia sesión en el CRM", False),
+                    ("voy a iniciar el análisis de ventas", False)]:
+    salida = run(A, ["activar.py"], stdin=json.dumps({"prompt": texto}), esperado=0).stdout
+    if ("primeros-pasos" in salida) != debe:
+        fallos.append(f"activar.py con {texto!r}: esperaba {'activar' if debe else 'no activar'}")
 cfg = json.loads((A / "espacio.json").read_text(encoding="utf-8"))
 if sorted(cfg["arquitectura"]["preexistentes"]) != ["README.md", "src"]:
     fallos.append(f"preexistentes inesperados: {cfg['arquitectura']['preexistentes']}")
@@ -355,6 +367,9 @@ for nombre, cmd in instaladores:
             fallos.append(f"{nombre} vuelta {vuelta}: no quedó {palabra}")
         if not all(x in r.stdout for x in ("Programas para trabajar", "python", "node", "playwright")):
             fallos.append(f"{nombre} no revisó Python, Node.js y Playwright")
+    hooks_inst = json.loads((d / ".claude/settings.json").read_text(encoding="utf-8")).get("hooks", {})         if (d / ".claude/settings.json").is_file() else {}
+    if json.dumps(hooks_inst).count("activar.py") != 1:
+        fallos.append(f"{nombre} no registró una sola vez la activación con «empezar»")
     if (d / ".claude/skills/primeros-pasos.anterior").exists():
         fallos.append(f"{nombre} dejó la copia anterior")
     if nombre == "install.sh":  # en la carpeta personal no instala

@@ -22,6 +22,8 @@ sys.dont_write_bytecode = True  # no dejar __pycache__ dentro del skill instalad
 
 AQUI = Path(__file__).resolve().parent
 SKILL = AQUI.parent
+PLANTILLAS = SKILL / "plantillas"       # lo que montar.py renderiza
+CONVENCIONES = SKILL / "convenciones"   # se copian a DOCS en cada espacio
 CONFIG = "espacio.json"
 ESTADO = ".espacio"                  # derivados: grafo, sesiones, respaldos
 DOCS = "docs/espacio-de-trabajo"     # convenciones copiadas al repositorio

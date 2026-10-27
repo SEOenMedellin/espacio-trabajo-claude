@@ -25,7 +25,6 @@ import bitacora  # noqa: E402
 import comun  # noqa: E402
 import programas  # noqa: E402
 
-PLANTILLA = comun.SKILL / "assets" / "plantilla"
 
 
 def revisar(raiz: Path, cfg: dict) -> list[tuple[str, str, str]]:
@@ -64,7 +63,7 @@ def revisar(raiz: Path, cfg: dict) -> list[tuple[str, str, str]]:
     if glob:
         item("OK" if (raiz / comun.base_dir(glob) / "README.md").is_file() else "FALTA",
              comun.base_dir(glob) + "/README.md")
-    for f in sorted((PLANTILLA / "convenciones").glob("*.md")):
+    for f in sorted(comun.CONVENCIONES.glob("*.md")):
         p = raiz / comun.DOCS / f.name
         item("OK" if p.is_file() else "FALTA", f"{comun.DOCS}/{f.name}")
     ejemplo = raiz / "credenciales" / ".env.example"
@@ -91,7 +90,7 @@ def revisar(raiz: Path, cfg: dict) -> list[tuple[str, str, str]]:
     st = raiz / ".claude" / "settings.json"
     try:
         hk = json.dumps(json.loads(st.read_text(encoding="utf-8")).get("hooks", {})) if st.is_file() else ""
-        faltan = [h for h in ("inicio.py", "cierre_check.py", "orden_check.py") if h not in hk]
+        faltan = [h for h in ("inicio.py", "cierre_check.py", "orden_check.py", "activar.py") if h not in hk]
         item("DIVERGE" if faltan else "OK", ".claude/settings.json",
              "faltan hooks: " + ", ".join(faltan) if faltan else "")
     except ValueError:

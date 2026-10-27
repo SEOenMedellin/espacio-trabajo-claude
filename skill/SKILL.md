@@ -9,10 +9,12 @@ description: >
   arquitectura de carpetas que necesita según su objetivo y la monta con CLAUDE.md, bitácoras, memoria de trabajo, grafo de
   orquestación, protocolo de investigación profunda, creación de skills a
   partir del trabajo, credenciales seguras y hooks de inicio y cierre de
-  sesión. Actívalo cuando alguien escriba "empezar", "iniciar", "primeros
-  pasos", "configura mi espacio", "prepara este repositorio", "soy nuevo en el
+  sesión. Actívalo cuando alguien escriba "empezar", "empecemos", "iniciar",
+  "comenzar", "arrancar", "configurar", "preparar", "setup", "primeros pasos",
+  "configura mi espacio", "prepara este repositorio", "soy nuevo en el
   proyecto", "organiza mis carpetas", o cuando la carpeta no tenga
-  espacio.json. También para ampliarlo ("tengo un proyecto nuevo", "cambió mi
+  espacio.json. Un hook (activar.py) también lo pide cuando el mensaje es
+  solo una de esas palabras. También para ampliarlo ("tengo un proyecto nuevo", "cambió mi
   cargo", "ahora también hago…") o repararlo si el aviso de inicio dice que
   faltan piezas. No es el skill de onboarding de usuarios de un producto.
 ---
@@ -38,6 +40,7 @@ va cada cosa, qué se resolvió antes y cómo aprender de cada tarea.
 | Memoria (global y por proyecto) | Un nodo por cosa resuelta, con índice regenerable |
 | Grafo de orquestación | `grafo.py --plan` dice qué skills, memoria y contexto abrir antes de cada tarea |
 | `credenciales/` | `.env` fuera de git y `.env.example` con los accesos previstos |
+| Activación | `activar.py` (hook `UserPromptSubmit`, registrado ya por el instalador): si el mensaje es «empezar», «iniciar», «configurar» o equivalente, le indica a Claude que invoque este skill |
 | Hooks | `SessionStart`: última sesión, peticiones abiertas, catálogo de skills, anotaciones y orden. `PreToolUse`: bloquea archivos fuera de la arquitectura y pide confirmación para mover. `Stop`: recuerda el cierre |
 | Orden | `ordenar.py` propone a dónde va cada archivo según su contenido y uso; mueve solo lo que la persona confirme |
 | Atajos | Un skill por tarea habitual (`.claude/skills/<tarea>/`), invocable como `/<tarea>`; su «Cómo se hace» se completa la primera vez que se usa |
@@ -306,6 +309,7 @@ revisa la copia y vuelve a aplicar su cambio.
 |---|---|
 | `montar.py --respuestas r.json [--dry-run]` | Montar o ampliar (`--actualizar`, `--json`, `--raiz`) |
 | `verificar.py` | Estado: OK, FALTA, DIVERGE, AVISO (`--json`) |
+| `activar.py` | Hook de activación por palabras (`--probar "texto"`, `--registrar`) |
 | `programas.py` | Programas para trabajar: estado, `--comando <nombre>` y `--instalar <nombre>` (solo con el sí de la persona) |
 | `arranque.py` | Lista de arranque: avance y cómo completar cada pendiente (`--breve`, `--json`) |
 | `tiempo.py` | Reloj de una tarea del rol: `--empezar <proceso>`, `--terminar`, `--estimacion <proceso>` |
@@ -325,4 +329,5 @@ revisa la copia y vuelve a aplicar su cambio.
 | `references/entrevista.md` | Pasos 3 y 6: preguntas, inferencias y esquema del JSON |
 | `references/investigar-rol.md` | Paso 4: qué investigar del rol, cómo convertirlo en lineamientos y el bloque `investigacion_rol` |
 | `references/arquitecturas.md` | Paso 5: cómo decidir y los seis tipos |
-| `assets/plantilla/` | Lo que renderiza `montar.py` (CLAUDE.md, convenciones, bitácoras, hooks, atajos). No se edita por proyecto |
+| `plantillas/` | Lo que renderiza `montar.py` (CLAUDE.md, perfil, bitácora, atajos, hooks). No se edita por proyecto |
+| `convenciones/` | Las reglas del espacio que se copian a `docs/espacio-de-trabajo/` |

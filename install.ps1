@@ -133,6 +133,19 @@
             Write-Host '  Después de instalar, cierra y vuelve a abrir la terminal.'
         }
 
+        # ---- Que «empezar», «iniciar» o «configurar» activen el skill
+        foreach ($c in @('python', 'python3', 'py')) {
+            $cmd = Get-Command $c -ErrorAction SilentlyContinue
+            if ($cmd -and $cmd.Source -notlike '*WindowsApps*') {
+                & $c -c 'import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)' 2>$null
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Host ''
+                    & $c (Join-Path $destino 'scripts\activar.py') --registrar --raiz $destinoRepo
+                    break
+                }
+            }
+        }
+
         if (-not (Test-Path (Join-Path $destinoRepo '.git'))) {
             Write-Host 'Ojo: esta carpeta no es un repositorio git. Funciona igual, pero te conviene versionarla (git init).' -ForegroundColor Yellow
         }
