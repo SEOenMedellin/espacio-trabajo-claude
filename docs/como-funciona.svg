@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="830" viewBox="0 0 1200 830" role="img" aria-labelledby="t d">
   <title id="t">Cómo funciona primeros-pasos</title>
-  <desc id="d">Instalas con una línea, que también revisa Python, Node.js y Playwright. Escribes «empezar» y respondes una entrevista corta. Claude investiga tu rol (responsabilidades, obligaciones, tareas comunes y programas) y de ahí saca los lineamientos de tu espacio. Tu repositorio queda listo: carpetas a tu medida, lineamientos del rol, Claude que te conoce, memoria, bitácora, programas listos, accesos seguros y orden automático. Cada sesión arranca con contexto y termina guardando lo aprendido.</desc>
+  <desc id="d">Instalas con una línea, que también revisa Python, Node.js y Playwright. Escribes «empezar» y respondes una entrevista corta. Claude investiga tu rol (responsabilidades, obligaciones, tareas comunes y programas) y de ahí saca los lineamientos de tu espacio. Una lista de arranque te lleva al 100 %. Queda listo: carpetas a tu medida, lineamientos del rol, un atajo por cada tarea, tiempo ahorrado medido en cada tarea, resumen semanal, memoria y bitácora, programas listos, y todo seguro y en orden. En cada sesión Claude arranca con contexto, usa tu atajo, hace la tarea, mide el tiempo ahorrado y guarda lo aprendido.</desc>
   <defs>
     <linearGradient id="fondo" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#0D1117"/>
@@ -20,7 +20,9 @@
       .num { font-size: 15px; font-weight: 700; fill: #0D1117; }
       .paso { font-size: 19px; font-weight: 700; }
       .txt { font-size: 14px; fill: #9DA7B3; }
+      .mini { font-size: 12px; fill: #9DA7B3; }
       .chip { font-size: 12px; font-weight: 600; fill: #FDBA74; }
+      .code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; fill: #FDBA74; }
       .seccion { font-size: 13px; font-weight: 700; letter-spacing: 1.5px; fill: #F97316; }
       .tit { font-size: 16px; font-weight: 700; }
       .ciclo { font-size: 16px; font-weight: 600; fill: #E6EDF3; }
@@ -42,6 +44,12 @@
       @keyframes traza { to { stroke-dashoffset: 0; } }
       .a1 { animation-delay: 1s; } .a2 { animation-delay: 1.6s; } .a3 { animation-delay: 2.2s; }
 
+      /* Barras que crecen: arranque al 100 % y tiempo con Claude vs. a mano */
+      .crece { transform-box: fill-box; transform-origin: left center; transform: scaleX(0);
+               animation: crece 1.4s cubic-bezier(.2,.7,.2,1) forwards; }
+      @keyframes crece { to { transform: scaleX(1); } }
+      .g1 { animation-delay: 2.8s; } .g2 { animation-delay: 3.6s; } .g3 { animation-delay: 3.9s; }
+
       /* El paso de la investigación late */
       .late { animation: late 2.4s ease-in-out 2.4s infinite; }
       @keyframes late { 0%, 100% { stroke-opacity: .55; } 50% { stroke-opacity: 1; } }
@@ -52,11 +60,12 @@
       .punto { offset-path: path("M32 96 H1048"); opacity: 0; animation: recorre 6s linear 4.8s infinite; }
       @keyframes recorre { 0% { offset-distance: 0%; opacity: 0; } 6% { opacity: 1; } 94% { opacity: 1; } 100% { offset-distance: 100%; opacity: 0; } }
       .resalta { animation: resalta 6s linear infinite; }
-      .r1 { animation-delay: 4.8s; } .r2 { animation-delay: 6.3s; } .r3 { animation-delay: 7.8s; } .r4 { animation-delay: 9.3s; }
-      @keyframes resalta { 0%, 30%, 100% { fill: #E6EDF3; } 8%, 22% { fill: #FDBA74; } }
+      .r1 { animation-delay: 4.8s; } .r2 { animation-delay: 6s; } .r3 { animation-delay: 7.2s; }
+      .r4 { animation-delay: 8.4s; } .r5 { animation-delay: 9.6s; }
+      @keyframes resalta { 0%, 24%, 100% { fill: #E6EDF3; } 6%, 18% { fill: #FDBA74; } }
 
       @media (prefers-reduced-motion: reduce) {
-        .entra, .traza, .late, .resalta { animation: none !important; opacity: 1; stroke-dashoffset: 0; }
+        .entra, .traza, .late, .resalta, .crece { animation: none !important; opacity: 1; stroke-dashoffset: 0; transform: none; }
         .halo, .punto { animation: none !important; opacity: 0; }
       }
     </style>
@@ -67,7 +76,7 @@
 
   <g class="entra d0">
     <text class="h1" x="60" y="78">De carpeta vacía a un espacio que aprende contigo</text>
-    <text class="sub" x="60" y="112">Cuatro pasos y Claude trabaja sabiendo quién eres, qué exige tu oficio y dónde va cada cosa.</text>
+    <text class="sub" x="60" y="112">Cuatro pasos y Claude trabaja sabiendo quién eres, qué exige tu oficio y cuánto tiempo te ahorra.</text>
   </g>
 
   <!-- Paso 1 -->
@@ -128,11 +137,15 @@
     <rect class="card" width="246" height="200" rx="16"/>
     <circle cx="34" cy="36" r="15" fill="#F97316"/>
     <text class="num" x="34" y="41" text-anchor="middle">4</text>
-    <text class="paso" x="58" y="43">Trabaja con todo</text>
-    <text class="txt" x="20" y="78">Claude sabe quién eres, qué</text>
-    <text class="txt" x="20" y="97">exige tu rol y dónde va cada</text>
-    <text class="txt" x="20" y="116">cosa, desde la siguiente</text>
-    <text class="txt" x="20" y="135">sesión.</text>
+    <text class="paso" x="58" y="43">Al 100 %</text>
+    <text class="txt" x="20" y="78">Tu lista de arranque te dice</text>
+    <text class="txt" x="20" y="97">qué falta. Escribe «sigamos»</text>
+    <text class="txt" x="20" y="116">y tu primera tarea la hacen</text>
+    <text class="txt" x="20" y="135">juntos.</text>
+    <text class="mini" x="20" y="163">Arranque</text>
+    <text class="mini" x="226" y="163" text-anchor="end" style="fill:#FDBA74;font-weight:600">7 de 7</text>
+    <rect x="20" y="171" width="206" height="8" rx="4" fill="#30363D"/>
+    <rect class="crece g1" x="20" y="171" width="206" height="8" rx="4" fill="#F97316"/>
   </g></g>
 
   <!-- Lo que queda listo -->
@@ -155,44 +168,48 @@
   <g transform="translate(610 418)"><g class="entra t3">
     <rect class="tile" width="255" height="96" rx="14"/>
     <rect class="barra" width="5" height="96" rx="2.5"/>
-    <text class="tit" x="22" y="34">Claude te conoce</text>
-    <text class="txt" x="22" y="60">Tu perfil y tus reglas,</text>
-    <text class="txt" x="22" y="79">en cada conversación.</text>
+    <text class="tit" x="22" y="34">Un atajo por tarea</text>
+    <text class="code" x="22" y="60">/informe-mensual</text>
+    <text class="txt" x="22" y="79">Siempre igual de bien.</text>
   </g></g>
   <g transform="translate(885 418)"><g class="entra t4">
     <rect class="tile" width="255" height="96" rx="14"/>
     <rect class="barra" width="5" height="96" rx="2.5"/>
-    <text class="tit" x="22" y="34">Memoria de lo resuelto</text>
-    <text class="txt" x="22" y="60">Lo que ya se resolvió no se</text>
-    <text class="txt" x="22" y="79">vuelve a investigar.</text>
+    <text class="tit" x="22" y="34">Tiempo ahorrado</text>
+    <text class="mini" x="22" y="58">Con Claude</text>
+    <rect x="96" y="49" width="40" height="10" rx="5" class="crece g2" fill="#F97316"/>
+    <text class="mini" x="142" y="58" style="fill:#FDBA74">25 min</text>
+    <text class="mini" x="22" y="80">A mano</text>
+    <rect x="96" y="71" width="120" height="10" rx="5" class="crece g3" fill="#484F58"/>
+    <text class="mini" x="222" y="80">2 h</text>
   </g></g>
   <g transform="translate(60 530)"><g class="entra t5">
     <rect class="tile" width="255" height="96" rx="14"/>
     <rect class="barra" width="5" height="96" rx="2.5"/>
-    <text class="tit" x="22" y="34">Bitácora de tu trabajo</text>
-    <text class="txt" x="22" y="60">Cada corrección queda, para</text>
-    <text class="txt" x="22" y="79">que el error no se repita.</text>
+    <text class="tit" x="22" y="34">Resumen semanal</text>
+    <text class="txt" x="22" y="60">Lo que hiciste, lo que ahorraste</text>
+    <text class="txt" x="22" y="79">y lo que aprendió Claude.</text>
   </g></g>
   <g transform="translate(335 530)"><g class="entra t6">
+    <rect class="tile" width="255" height="96" rx="14"/>
+    <rect class="barra" width="5" height="96" rx="2.5"/>
+    <text class="tit" x="22" y="34">Memoria y bitácora</text>
+    <text class="txt" x="22" y="60">Lo resuelto no se investiga</text>
+    <text class="txt" x="22" y="79">dos veces; el error, tampoco.</text>
+  </g></g>
+  <g transform="translate(610 530)"><g class="entra t7">
     <rect class="tile" width="255" height="96" rx="14"/>
     <rect class="barra" width="5" height="96" rx="2.5"/>
     <text class="tit" x="22" y="34">Programas listos</text>
     <text class="txt" x="22" y="60">Te avisa si falta alguno y lo</text>
     <text class="txt" x="22" y="79">instala solo con tu sí.</text>
   </g></g>
-  <g transform="translate(610 530)"><g class="entra t7">
-    <rect class="tile" width="255" height="96" rx="14"/>
-    <rect class="barra" width="5" height="96" rx="2.5"/>
-    <text class="tit" x="22" y="34">Accesos seguros</text>
-    <text class="txt" x="22" y="60">Tus claves fuera de git y</text>
-    <text class="txt" x="22" y="79">nunca pegadas en el chat.</text>
-  </g></g>
   <g transform="translate(885 530)"><g class="entra t8">
     <rect class="tile" width="255" height="96" rx="14"/>
     <rect class="barra" width="5" height="96" rx="2.5"/>
-    <text class="tit" x="22" y="34">Orden que se mantiene</text>
-    <text class="txt" x="22" y="60">Cada archivo en su lugar, y</text>
-    <text class="txt" x="22" y="79">nada se mueve sin tu sí.</text>
+    <text class="tit" x="22" y="34">Seguro y en orden</text>
+    <text class="txt" x="22" y="60">Claves fuera del chat; nada se</text>
+    <text class="txt" x="22" y="79">mueve sin tu sí.</text>
   </g></g>
 
   <!-- Ciclo de cada sesión -->
@@ -200,12 +217,14 @@
     <rect width="1080" height="110" rx="16" fill="#010409" stroke="#30363D"/>
     <text class="seccion" x="32" y="38" style="fill:#FDBA74">EN CADA SESIÓN</text>
     <text class="ciclo resalta r1" x="32" y="76">Arranca con contexto</text>
-    <path d="M222 71 H262" stroke="#F97316" stroke-width="2" fill="none" marker-end="url(#flecha)"/>
-    <text class="ciclo resalta r2" x="276" y="76">revisa lo que ya se resolvió</text>
-    <path d="M505 71 H545" stroke="#F97316" stroke-width="2" fill="none" marker-end="url(#flecha)"/>
-    <text class="ciclo resalta r3" x="559" y="76">hace la tarea</text>
-    <path d="M686 71 H726" stroke="#F97316" stroke-width="2" fill="none" marker-end="url(#flecha)"/>
-    <text class="ciclo resalta r4" x="740" y="76">guarda lo aprendido para la próxima</text>
+    <path d="M218 71 H254" stroke="#F97316" stroke-width="2" fill="none" marker-end="url(#flecha)"/>
+    <text class="ciclo resalta r2" x="268" y="76">usa tu atajo</text>
+    <path d="M384 71 H420" stroke="#F97316" stroke-width="2" fill="none" marker-end="url(#flecha)"/>
+    <text class="ciclo resalta r3" x="434" y="76">hace la tarea</text>
+    <path d="M556 71 H592" stroke="#F97316" stroke-width="2" fill="none" marker-end="url(#flecha)"/>
+    <text class="ciclo resalta r4" x="606" y="76">mide el tiempo ahorrado</text>
+    <path d="M812 71 H848" stroke="#F97316" stroke-width="2" fill="none" marker-end="url(#flecha)"/>
+    <text class="ciclo resalta r5" x="862" y="76">guarda lo aprendido</text>
     <line x1="32" y1="96" x2="1048" y2="96" stroke="#30363D" stroke-width="2" stroke-linecap="round"/>
     <circle class="punto" r="5" fill="#F97316"/>
   </g></g>
