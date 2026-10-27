@@ -19,7 +19,7 @@ description: >
   faltan piezas. No es el skill de onboarding de usuarios de un producto.
 ---
 
-# Primeros pasos
+# Primer Paso
 
 Prepara un espacio de trabajo hecho a la medida de quien lo va a usar. No
 asume área, empresa ni herramienta: todo sale de la entrevista. El resultado

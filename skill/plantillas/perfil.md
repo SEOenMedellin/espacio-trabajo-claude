@@ -1,7 +1,7 @@
 # Perfil de trabajo — {{PROYECTO}}
 
 Generado desde `espacio.json` el {{FECHA}}. No se edita a mano: se actualiza
-volviendo a correr `primeros-pasos` («cambió mi cargo», «tengo un proyecto
+volviendo a correr Primer Paso (`/primeros-pasos`) («cambió mi cargo», «tengo un proyecto
 nuevo», «ahora también hago…»).
 
 ## Cargo y objetivo

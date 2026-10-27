@@ -54,6 +54,6 @@ Lo que ya existía en la raíz antes del montaje (`espacio.json` →
 ## Cambiar la arquitectura
 
 Si el trabajo cambia (nuevo proyecto, nuevo tipo de entregable, nueva
-fuente de datos), se vuelve a correr `primeros-pasos`: suma carpetas y
+fuente de datos), se vuelve a correr Primer Paso (`/primeros-pasos`): suma carpetas y
 proyectos sin quitar nada. Mover o renombrar carpetas existentes se hace a
 mano, con la persona. Nada de esto se registra en la bitácora de trabajo.

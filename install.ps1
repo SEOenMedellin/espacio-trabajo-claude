@@ -1,4 +1,4 @@
-# Instala o actualiza el skill primeros-pasos en el repositorio de la carpeta actual.
+# Instala o actualiza el skill Primer Paso (primeros-pasos) en el repositorio de la carpeta actual.
 #
 #   irm https://raw.githubusercontent.com/davidortiz-ops/espacio-trabajo-claude/main/install.ps1 | iex
 #
@@ -30,7 +30,7 @@
                 }
                 Copy-Item -Recurse (Join-Path $env:PRIMEROS_PASOS_ORIGEN 'skill') (Join-Path $tmp 'skill')
             } else {
-                Write-Host 'Descargando primeros-pasos…'
+                Write-Host 'Descargando Primer Paso…'
                 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
                 $zip = Join-Path $tmp 'skill.zip'
                 try {
@@ -67,7 +67,7 @@
         }
 
         Write-Host ''
-        Write-Host "Listo: primeros-pasos quedó $accion en $destino" -ForegroundColor Green
+        Write-Host "Listo: Primer Paso quedó $accion en $destino" -ForegroundColor Green
 
         # ---- Programas para trabajar: Git, Python, Node.js y Playwright
         function Refrescar-Path {

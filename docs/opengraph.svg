@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="t d">
+  <title id="t">Primer Paso</title>
+  <desc id="d">Primer Paso, skill de Claude Code: Claude empieza cada conversación sabiendo quién eres, qué exige tu oficio y dónde va cada cosa. Atajos por tarea, tiempo ahorrado medido, resumen semanal e investigación de tu rol.</desc>
+  <defs>
+    <linearGradient id="fondo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0D1117"/>
+      <stop offset="1" stop-color="#1A1410"/>
+    </linearGradient>
+    <radialGradient id="brillo" cx="0.85" cy="0.2" r="0.6">
+      <stop offset="0" stop-color="#F97316" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#F97316" stop-opacity="0"/>
+    </radialGradient>
+    <style>
+      text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; fill: #E6EDF3; }
+      .marca { font-size: 22px; font-weight: 700; letter-spacing: 3px; fill: #F97316; }
+      .titulo { font-size: 88px; font-weight: 800; letter-spacing: -2px; }
+      .lema { font-size: 30px; font-weight: 500; fill: #C9D1D9; }
+      .chip { font-size: 19px; font-weight: 600; fill: #FDBA74; }
+      .code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 20px; fill: #E6EDF3; }
+      .prompt { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 20px; fill: #F97316; }
+      .tenue { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 18px; fill: #8B949E; }
+      .pie { font-size: 20px; fill: #8B949E; }
+    </style>
+  </defs>
+
+  <rect width="1280" height="640" fill="url(#fondo)"/>
+  <rect width="1280" height="640" fill="url(#brillo)"/>
+  <rect x="0" y="0" width="1280" height="8" fill="#F97316"/>
+
+  <text class="marca" x="80" y="118">SKILL PARA CLAUDE CODE</text>
+  <text class="titulo" x="76" y="214">Primer Paso</text>
+  <text class="lema" x="80" y="278">Claude empieza cada conversación</text>
+  <text class="lema" x="80" y="318">sabiendo quién eres, qué exige tu</text>
+  <text class="lema" x="80" y="358">oficio y dónde va cada cosa.</text>
+
+  <g transform="translate(80 404)">
+    <rect width="196" height="44" rx="22" fill="#3B1D0C"/>
+    <text class="chip" x="98" y="29" text-anchor="middle">Atajos por tarea</text>
+    <rect x="210" width="196" height="44" rx="22" fill="#3B1D0C"/>
+    <text class="chip" x="308" y="29" text-anchor="middle">Tiempo ahorrado</text>
+    <rect y="58" width="196" height="44" rx="22" fill="#3B1D0C"/>
+    <text class="chip" x="98" y="87" text-anchor="middle">Resumen semanal</text>
+    <rect x="210" y="58" width="196" height="44" rx="22" fill="#3B1D0C"/>
+    <text class="chip" x="308" y="87" text-anchor="middle">Tu rol investigado</text>
+  </g>
+
+  <!-- Terminal -->
+  <g transform="translate(700 150)">
+    <rect width="500" height="330" rx="18" fill="#010409" stroke="#30363D" stroke-width="2"/>
+    <circle cx="30" cy="30" r="7" fill="#F85149"/>
+    <circle cx="54" cy="30" r="7" fill="#D29922"/>
+    <circle cx="78" cy="30" r="7" fill="#3FB950"/>
+    <line x1="0" y1="58" x2="500" y2="58" stroke="#30363D" stroke-width="2"/>
+    <text class="tenue" x="30" y="100"># en la carpeta de tu proyecto</text>
+    <text class="prompt" x="30" y="138">$</text>
+    <text class="code" x="54" y="138">curl … | bash</text>
+    <text class="tenue" x="30" y="172">Listo: Primer Paso quedó instalado</text>
+    <text class="prompt" x="30" y="222">$</text>
+    <text class="code" x="54" y="222">claude</text>
+    <text class="prompt" x="30" y="262">›</text>
+    <text class="code" x="54" y="262">empezar</text>
+    <rect x="152" y="246" width="12" height="22" fill="#F97316"/>
+    <text class="tenue" x="30" y="304">Con Claude 25 min · a mano 2 h</text>
+  </g>
+
+  <text class="pie" x="80" y="584">Un comando en Windows, Mac o Linux · Gratis · Licencia MIT</text>
+</svg>

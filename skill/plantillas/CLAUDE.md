@@ -1,8 +1,8 @@
 # Espacio de trabajo — {{PROYECTO}}
 
-Generado por `primeros-pasos` {{VERSION}} el {{FECHA}} a partir de la
+Generado por Primer Paso {{VERSION}} el {{FECHA}} a partir de la
 entrevista inicial. Este bloque se regenera desde `espacio.json`: para
-cambiarlo, vuelve a correr `primeros-pasos` (o edita `espacio.json` y corre
+cambiarlo, vuelve a correr Primer Paso (`/primeros-pasos`) (o edita `espacio.json` y corre
 `montar.py --actualizar`). Lo que escribas fuera de los marcadores no se toca.
 
 ## Quién trabaja aquí
@@ -49,7 +49,7 @@ Si el repositorio ya traía skills, `{{CONTEXTO}}skills-del-repositorio.md`
 dice cuál usar para cada tarea, qué reglas imponen y qué conocimiento no está
 validado; las tareas que cubre un skill existente se hacen con ese skill.
 Cuando aparece uno nuevo o cambia alguno, se revisa antes de usarlo
-(`references/skills-existentes.md` del skill primeros-pasos).
+(`references/skills-existentes.md` de Primer Paso, el skill `primeros-pasos`).
 
 Cada tarea habitual sin skill propio tiene un atajo en `.claude/skills/<tarea>/`, que la
 persona usa escribiendo `/<tarea>` o pidiéndola con sus palabras. Si la

@@ -1,4 +1,4 @@
-# primeros-pasos
+# Primer Paso
 
 ## Claude empieza cada conversación sabiendo quién eres, qué exige tu oficio y dónde va cada cosa
 
@@ -25,7 +25,7 @@ el nombre de tu proyecto, sin espacios ni tildes:
 mkdir C:\trabajo\mi-proyecto -Force; cd C:\trabajo\mi-proyecto
 ```
 
-**3. Instala el skill primeros-pasos** en esa carpeta:
+**3. Instala el skill Primer Paso** en esa carpeta:
 
 ```powershell
 irm https://raw.githubusercontent.com/davidortiz-ops/espacio-trabajo-claude/main/install.ps1 | iex
@@ -49,7 +49,7 @@ el nombre de tu proyecto, sin espacios ni tildes:
 mkdir -p ~/trabajo/mi-proyecto && cd ~/trabajo/mi-proyecto
 ```
 
-**3. Instala el skill primeros-pasos** en esa carpeta:
+**3. Instala el skill Primer Paso** en esa carpeta:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/davidortiz-ops/espacio-trabajo-claude/main/install.sh | bash
@@ -71,13 +71,13 @@ Para volver otro día, abre la terminal, entra a tu carpeta y abre Claude:
 `cd C:\trabajo\mi-proyecto; claude` en Windows o
 `cd ~/trabajo/mi-proyecto && claude` en Mac.
 
-![Cómo funciona primeros-pasos](docs/como-funciona.svg)
+![Cómo funciona Primer Paso](docs/como-funciona.svg)
 
 ## Lo que cambia en tu día
 
 Hoy le repites a Claude tu contexto en cada conversación. Le corriges lo mismo
 que ayer, guarda archivos donde no van y lo que resolvió la semana pasada se
-pierde. Con primeros-pasos eso se acaba desde la primera sesión.
+pierde. Con Primer Paso eso se acaba desde la primera sesión.
 
 ### Tus tareas salen igual cada vez
 

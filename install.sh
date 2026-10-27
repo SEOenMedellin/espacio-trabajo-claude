@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Instala o actualiza el skill primeros-pasos en el repositorio de la carpeta actual.
+# Instala o actualiza el skill Primer Paso (primeros-pasos) en el repositorio de la carpeta actual.
 #
 #   curl -fsSL https://raw.githubusercontent.com/davidortiz-ops/espacio-trabajo-claude/main/install.sh | bash
 #
@@ -27,7 +27,7 @@ if [ -n "${PRIMEROS_PASOS_ORIGEN:-}" ]; then
 else
   command -v curl >/dev/null 2>&1 || falla "hace falta curl."
   command -v tar >/dev/null 2>&1 || falla "hace falta tar."
-  aviso "Descargando primeros-pasos…"
+  aviso "Descargando Primer Paso…"
   curl -fsSL "https://codeload.github.com/$REPO/tar.gz/refs/heads/$RAMA" | tar -xz -C "$TMP" \
     || falla "no se pudo descargar de GitHub. Revisa tu conexión."
   mv "$TMP"/*/skill "$TMP/skill" 2>/dev/null || falla "la descarga no trae la carpeta skill/."
@@ -47,7 +47,7 @@ else
 fi
 
 aviso ""
-aviso "Listo: primeros-pasos quedó $ACCION en $DESTINO_REPO/$DESTINO_REL"
+aviso "Listo: Primer Paso quedó $ACCION en $DESTINO_REPO/$DESTINO_REL"
 
 # ---- Programas para trabajar: Git, Python, Node.js y Playwright
 tiene_python() {

@@ -30,5 +30,5 @@ en `credenciales/.env`.
 ## Agregar un acceso nuevo
 
 Agregar el nombre a `credenciales/.env.example` con un comentario de para qué
-sirve, y a `espacio.json` → `credenciales` (o volver a correr `primeros-pasos`,
+sirve, y a `espacio.json` → `credenciales` (o volver a correr Primer Paso (`/primeros-pasos`),
 que los suma solo).

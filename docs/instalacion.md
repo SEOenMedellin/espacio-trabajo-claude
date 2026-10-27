@@ -36,7 +36,7 @@ mkdir -p ~/trabajo/mi-proyecto && cd ~/trabajo/mi-proyecto
 Si ya tienes una carpeta con tus archivos, usa esa: escribe `cd` seguido de
 su ruta. Tus archivos se respetan.
 
-## Paso 3. Instala el skill primeros-pasos
+## Paso 3. Instala el skill Primer Paso
 
 En la misma terminal, dentro de tu carpeta:
 
@@ -54,7 +54,7 @@ curl -fsSL https://raw.githubusercontent.com/davidortiz-ops/espacio-trabajo-clau
 
 El instalador revisa si tienes Git, Python, Node.js y Playwright. Si falta
 alguno, te pregunta «¿Instalo … ahora?»: responde `S` y Enter. Al final verás
-«Listo: primeros-pasos quedó instalado».
+«Listo: Primer Paso quedó instalado».
 
 ## Paso 4. Abre Claude y escribe «empezar»
 
