@@ -51,14 +51,14 @@ nombre `primeros-pasos`:
 ```bash
 # desde la raíz de tu repositorio
 mkdir -p .claude/skills
-cp -r /ruta/a/skill-primeros-pasos/skill .claude/skills/primeros-pasos
+cp -r /ruta/a/espacio-trabajo-claude/skill .claude/skills/primeros-pasos
 ```
 
 En Windows (PowerShell):
 
 ```powershell
 New-Item -ItemType Directory -Force .claude\skills | Out-Null
-Copy-Item -Recurse C:\ruta\a\skill-primeros-pasos\skill .claude\skills\primeros-pasos
+Copy-Item -Recurse C:\ruta\a\espacio-trabajo-claude\skill .claude\skills\primeros-pasos
 ```
 
 Abre Claude Code en ese repositorio y escribe **«empezar»**. La entrevista

@@ -50,8 +50,8 @@ que ya sabe (se pueden agregar después).
 
 - **Idioma:** el de la conversación.
 - **Credenciales:** de las herramientas mencionadas, deduce qué accesos van a
-  hacer falta y propón nombres de variable (`HUBSPOT_TOKEN`,
-  `GOOGLE_APPLICATION_CREDENTIALS`…) con una línea de para qué sirve cada uno.
+  hacer falta y propón nombres de variable (`CRM_TOKEN`,
+  `NUBE_CREDENCIALES`…) con una línea de para qué sirve cada uno.
   Solo nombres: **nunca valores**.
 - **Arquitectura:** con `references/arquitecturas.md` (objetivo + tareas +
   destinatarios + modo + lo que ya hay en el repositorio).
@@ -82,12 +82,12 @@ Se escribe en la raíz con `Write`; `montar.py` lo borra al terminar bien.
     "proyecto": "Tablero de indicadores logísticos",
     "objetivo": "Que la gerencia vea cada lunes el cumplimiento de entregas y los cuellos de botella.",
     "destinatarios": "Mi jefe y la gerencia de operaciones",
-    "conocimientos": ["Indicadores logísticos (OTIF, lead time)", "Excel y Power Query", "Normas de la empresa sobre datos de clientes"],
+    "conocimientos": ["Indicadores logísticos (OTIF, lead time)", "Hojas de cálculo y limpieza de datos", "Normas de la empresa sobre datos de clientes"],
     "tareas": [
       {"tarea": "Actualizar el tablero semanal", "frecuencia": "semanal", "entrega": "tablero + resumen de 1 página"},
       {"tarea": "Investigar causas de retrasos", "frecuencia": "cuando hay alertas", "entrega": "informe corto"}
     ],
-    "herramientas": ["Excel", "ERP (exporta CSV)", "Correo"]
+    "herramientas": ["Hoja de cálculo", "Sistema de gestión (exporta CSV)", "Correo"]
   },
   "arquitectura": {
     "tipo": "analisis-de-datos",

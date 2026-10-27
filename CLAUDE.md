@@ -1,8 +1,8 @@
-# skill-primeros-pasos
+# espacio-trabajo-claude
 
 Repositorio de desarrollo del skill `primeros-pasos`. Es independiente:
-**las reglas de `F:\StudioIA\CLAUDE.md` (las de EnduplaSGP) no aplican aquí**,
-aunque Claude Code las cargue por estar en una carpeta superior.
+las reglas de otros `CLAUDE.md` de carpetas superiores no aplican aquí,
+aunque Claude Code las cargue.
 
 ## Reglas
 
