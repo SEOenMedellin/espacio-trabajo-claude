@@ -33,7 +33,7 @@ PLANTILLA = comun.PLANTILLAS
 VAR = re.compile(r"^[A-Z][A-Z0-9_]*$")
 FECHA = re.compile(r"^\d{2}-(" + "|".join(comun.MESES) + r")-\d{4}$")
 GITIGNORE = ["credenciales/*", "!credenciales/.env.example", ".env", f"{comun.ESTADO}/",
-             "respuestas-espacio.json", "__pycache__/"]
+             "respuestas-espacio.json", "cierre.json", "__pycache__/"]
 
 
 class Reporte:
@@ -150,7 +150,12 @@ def validar(cfg: dict, exigir_rol: bool = False, existentes: list[str] | None = 
         # subcarpeta y el archivo.
         ejemplo = r.replace("<proyecto>", "x" * 30).replace("<DD-mmm-YYYY>", "27-sep-2026").rstrip("/")
         if not r.endswith(".md"):
-            ejemplo += "/categoria/" + "a" * 40 + ".docx" if r == rutas.get("entregables") else "/sub/" + "a" * 40 + ".docx"
+            if r != rutas.get("entregables"):
+                ejemplo += "/sub/" + "a" * 40 + ".docx"
+            elif "<DD-mmm-YYYY>" in r:
+                ejemplo += "/categoria/" + "a" * 40 + ".docx"
+            else:
+                ejemplo += "/categoria/P-012-27-sep-2026/" + "a" * 40 + ".docx"
         largo = comun.problema_longitud(Path("."), ejemplo)
         if largo and "ruta completa" not in largo:
             err.append(f"{r}: arquitectura demasiado profunda, no deja sitio para sus archivos ({largo}); "
@@ -228,7 +233,10 @@ def mapa_carpetas(cfg: dict) -> str:
     r = cfg["rutas"]
     filas = ["| Carpeta | Para qué |", "|---|---|",
              f"| `{r['contexto']}` | Documentos del proyecto que se leen antes de trabajar (insumo, no se modifican) |",
-             f"| `{r['entregables']}` | Lo que se produce, por fecha y categoría: `<DD-mmm-YYYY>/<categoria>/<archivo>` |",
+             (f"| `{r['entregables']}` | Lo que se produce, por fecha y categoría: `<DD-mmm-YYYY>/<categoria>/<archivo>` |"
+              if comun.legado(cfg) else
+              f"| `{r['entregables']}` | Lo que se produce, una carpeta por tarea: `<categoria>/<P-NNN-DD-mmm-YYYY>/` "
+              "con el entregable y su `memoria.md` |"),
              f"| `{r['investigacion']}` | Investigaciones profundas con sus fuentes, reutilizables |",
              f"| `{r['memoria_global']}` | Memoria de trabajo que sirve a cualquier proyecto (un nodo por cosa resuelta) |"]
     if r.get("memoria_proyecto"):
@@ -377,6 +385,8 @@ def variables(cfg: dict, raiz: Path) -> dict:
         "MAPA": mapa_carpetas(cfg),
         "CONTEXTO": cfg["rutas"]["contexto"],
         "ENTREGABLES": cfg["rutas"]["entregables"],
+        "PATRON_ENTREGA": "<DD-mmm-YYYY>/<categoria>/<archivo>" if comun.legado(cfg)
+        else "<categoria>/<P-NNN>-<DD-mmm-YYYY>/<archivo>",
         "INVESTIGACION": cfg["rutas"]["investigacion"],
         "MEMORIA_GLOBAL": cfg["rutas"]["memoria_global"],
         "MEMORIA_PROYECTO": cfg["rutas"].get("memoria_proyecto") or cfg["rutas"]["memoria_global"],
@@ -533,6 +543,8 @@ def hooks(raiz: Path, v: dict, rep: Reporte, seco: bool) -> None:
         for g in grupos:
             cmd = g["hooks"][0]["command"]
             marca = cmd.split("/scripts/")[-1].split('"')[0]
+            if marca == "activar.py" and not comun.activo():
+                continue  # el skill se desactivó o se eliminó: sin activación por palabras
             if marca in existentes:
                 continue
             hk.setdefault(evento, []).append(g)

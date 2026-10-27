@@ -27,7 +27,7 @@ CONVENCIONES = SKILL / "convenciones"   # se copian a DOCS en cada espacio
 CONFIG = "espacio.json"
 ESTADO = ".espacio"                  # derivados: grafo, sesiones, respaldos
 DOCS = "docs/espacio-de-trabajo"     # convenciones copiadas al repositorio
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 MARCA_INICIO = "<!-- primeros-pasos:inicio -->"
 MARCA_FIN = "<!-- primeros-pasos:fin -->"
 MESES = ("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")
@@ -123,6 +123,30 @@ def base_dir(ruta: str) -> str:
 def hoy(fecha: dt.date | None = None) -> str:
     d = fecha or dt.date.today()
     return f"{d.day:02d}-{MESES[d.month - 1]}-{d.year}"
+
+
+# Carpeta de una tarea dentro de los entregables: <id>-<DD-mmm-YYYY>, p. ej. P-012-27-oct-2026
+TAREA = re.compile(r"^(P-\d{3,}|[a-z][a-z0-9]*(?:-[a-z0-9]+)*?)-\d{2}-(" + "|".join(MESES) + r")-\d{4}$")
+RELACIONES = ("requiere", "resuelve", "deriva_en", "relacionado")
+
+
+def activo() -> bool:
+    """¿El skill está activo? (desactivado o eliminado, sus herramientas siguen funcionando)."""
+    return (SKILL / "SKILL.md").is_file()
+
+
+def legado(cfg: dict) -> bool:
+    """Espacios anteriores a 1.4: entregables por fecha (<DD-mmm-YYYY>/<categoria>/<archivo>)."""
+    return "<DD-mmm-YYYY>" in cfg.get("rutas", {}).get("entregables", "")
+
+
+def carpeta_tarea(cfg: dict, proyecto: str | None, categoria: str, id_: str, fecha: str) -> str:
+    """Ruta relativa de la carpeta de una tarea: <entregables><categoria>/<id>-<fecha>/."""
+    base = base_dir(resolver(cfg, proyecto)["entregables"])
+    pre = "" if base == "." else base + "/"
+    if legado(cfg):
+        return f"{pre}{fecha}/{categoria}/{id_}"
+    return f"{pre}{categoria}/{id_}-{fecha}"
 
 
 def a_fecha(texto: str) -> dt.date | None:

@@ -48,7 +48,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import comun  # noqa: E402
 
 RAIZ_ARCHIVOS = {"claude.md", "espacio.json", ".gitignore", ".gitattributes", "agents.md",
-                 "respuestas-espacio.json", "license", "license.md", "license.txt", "readme.md", "readme",
+                 "respuestas-espacio.json", "cierre.json", "license", "license.md", "license.txt", "readme.md", "readme",
                  "contributing.md", "changelog.md", ".editorconfig", ".env.example"}
 RAIZ_DIRS = {".claude", comun.ESTADO, ".git", ".github", ".vscode", ".idea", "credenciales", "docs"}
 FECHA = re.compile(r"^\d{2}-(" + "|".join(comun.MESES) + r")-\d{4}$")
@@ -141,11 +141,15 @@ def evaluar(raiz: Path, cfg: dict, rel: str, est: dict | None = None, es_dir: bo
             resto = rel[len(base) + 1:].split("/")
             if resto[0] in est["por_proyecto"] or resto[0] in est["dirs"]:
                 continue  # otra carpeta de rol que comparte base con los entregables
-            if not FECHA.match(resto[0]) or (len(resto) < 3 and not es_dir):
-                return "entregable fuera de <DD-mmm-YYYY>/<categoria>/"
+            if comun.legado(cfg):
+                if not FECHA.match(resto[0]) or (len(resto) < 3 and not es_dir):
+                    return "entregable fuera de <DD-mmm-YYYY>/<categoria>/"
+            elif (len(resto) < 3 and not es_dir) or (len(resto) >= 2 and not comun.TAREA.match(resto[1])):
+                return "entregable fuera de <categoria>/<P-NNN-DD-mmm-YYYY>/"
     nombre = partes[-1]
     en_contexto = any(rel.startswith(c + "/") for c in contexto_bases(cfg))
-    if not en_contexto and nombre not in IGNORAR and not NOMBRE_OK.match(nombre) and primero not in ("docs", "credenciales"):
+    if not en_contexto and nombre not in IGNORAR and not NOMBRE_OK.match(nombre) and not comun.TAREA.match(nombre) \
+            and primero not in ("docs", "credenciales"):
         return "nombre con espacios, acentos o mayúsculas"
     return ""
 
@@ -193,9 +197,14 @@ def destino(raiz: Path, cfg: dict, rel: str, motivo: str) -> tuple[str, str]:
         base = next((b for b in entregables_bases(cfg) if rel.startswith(b + "/")), "")
         if base:
             resto = rel[len(base) + 1:].split("/")
-            fecha = resto[0] if FECHA.match(resto[0]) else comun.hoy()
-            cat = comun.slug(resto[1], largo=20) if len(resto) >= 3 else categoria(p)
-            corta = f"{base}/{fecha}/{cat}/{nombre}"
+            if comun.legado(cfg):
+                fecha = resto[0] if FECHA.match(resto[0]) else comun.hoy()
+                cat = comun.slug(resto[1], largo=20) if len(resto) >= 3 else categoria(p)
+                corta = f"{base}/{fecha}/{cat}/{nombre}"
+            else:
+                cat = comun.slug(resto[0], largo=20) if len(resto) >= 3 else categoria(p)
+                tarea = resto[1] if len(resto) >= 3 and comun.TAREA.match(resto[1]) else f"previo-{comun.hoy()}"
+                corta = f"{base}/{cat}/{tarea}/{nombre}"
         else:
             corta = "/".join(partes[:max(1, comun.MAX_NIVELES - 3)] + [nombre])
         if comun.problema_longitud(raiz, corta):
@@ -219,15 +228,19 @@ def destino(raiz: Path, cfg: dict, rel: str, motivo: str) -> tuple[str, str]:
             if "crudo" in ruta or ("datos" in ruta and "proces" not in ruta):
                 return f"{comun.base_dir(ruta)}/{nombre}", "datos: van a la carpeta de datos"
     fecha = comun.hoy(dt.date.fromtimestamp(p.stat().st_mtime)) if p.exists() else comun.hoy()
+    def entrega(base: str) -> str:
+        if comun.legado(cfg):
+            return f"{base}/{fecha}/{cat}/{nombre}"
+        return f"{base}/{cat}/previo-{fecha}/{nombre}"
     if motivo.startswith("entregable fuera"):
         base = next((b for b in entregables_bases(cfg) if rel.startswith(b + "/")), comun.base_dir(r["entregables"]))
         resto = rel[len(base) + 1:].split("/")
         if FECHA.match(resto[0]):
             fecha = resto[0]
-        return f"{base}/{fecha}/{cat}/{nombre}", f"entregable de {fecha}, categoría {cat}"
+        return entrega(base), f"entregable de {fecha}, categoría {cat}"
     if p.is_dir():
         return "", "carpeta fuera de la arquitectura: revisar con la persona (registrarla o repartir su contenido)"
-    return f"{comun.base_dir(r['entregables'])}/{fecha}/{cat}/{nombre}", f"producido el {fecha}: entregable de {cat}"
+    return entrega(comun.base_dir(r["entregables"])), f"producido el {fecha}: entregable de {cat}"
 
 
 # ---------------------------------------------------------------- escaneo

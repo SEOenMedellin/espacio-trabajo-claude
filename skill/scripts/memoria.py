@@ -59,10 +59,15 @@ def leer_nodo(p: Path) -> dict:
                         v = v.strip("'\"")
                     meta[k.strip()] = v
             meta["cuerpo"] = partes[2]
-    enlaces = set(ENLACE.findall(meta["cuerpo"]))
+    # relacionado: [id, requiere:id, resuelve:id, deriva_en:id] — sin tipo es «relacionado»
+    relaciones = {("relacionado", e) for e in ENLACE.findall(meta["cuerpo"])}
     rel = meta.get("relacionado") or []
-    enlaces.update(rel if isinstance(rel, list) else [rel])
-    meta["enlaces"] = sorted(e for e in enlaces if e)
+    for x in (rel if isinstance(rel, list) else [rel]):
+        tipo, _, ident = x.partition(":") if ":" in x else ("relacionado", "", x)
+        if ident:
+            relaciones.add((tipo.strip() if tipo.strip() in comun.RELACIONES else "relacionado", ident.strip()))
+    meta["relaciones"] = sorted(relaciones)
+    meta["enlaces"] = sorted({e for _, e in relaciones if e})
     return meta
 
 

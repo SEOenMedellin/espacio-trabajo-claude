@@ -129,6 +129,12 @@ def main() -> int:
         print(f"Arranque: {len(ps) - len(pendientes)} de {len(ps)} listo. Falta: "
               + "; ".join(p["que"] for p in pendientes) + ". Muéstraselo a la persona en una línea y, si dice "
               "«sigamos», completa el primero (arranque.py dice cómo; instalar o mover siempre se confirma).")
+    marca = raiz / comun.ESTADO / "retiro-ofrecido"
+    if not pendientes and comun.activo() and not marca.exists():
+        print("El espacio quedó al 100 %. Ofrécele a la persona, una sola vez, retirar el asistente de "
+              "configuración (no lo que creó): mantenerlo, desactivarlo o eliminarlo (retirar.py; SKILL.md, "
+              "«Retirar el skill»). Explícale en una frase qué cambia con cada opción.")
+        comun.escribir(marca, comun.hoy())
     ultimo = resumen.ultimo_resumen(raiz)
     hay_trabajo = any(p["id"] == "primera" and p["ok"] for p in ps)
     if hay_trabajo and (ultimo is None or time.time() - ultimo > 7 * 86400):

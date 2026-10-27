@@ -59,7 +59,8 @@ validan y vigila el hook de orden:
 
 Por eso: la arquitectura propone **como mucho 3 niveles** antes del archivo
 en un proyecto único y 4 en multiproyecto (`proyectos/<p>/<rol>/`), los
-entregables son siempre `<DD-mmm-YYYY>/<categoria>/<archivo>`, y si hace falta
+entregables son siempre `<categoria>/<P-NNN>-<DD-mmm-YYYY>/<archivo>` (una
+carpeta por tarea, con su `memoria.md`; la crea `tarea.py`), y si hace falta
 más clasificación se resuelve con el nombre del archivo (`acta-comite-v2.md`),
 no con otra subcarpeta. Si el repositorio vive en una carpeta muy anidada
 (por ejemplo, dentro de una carpeta sincronizada con un nombre largo),
@@ -90,13 +91,15 @@ Consultoría, agencias, preventa, auditorías, legal, finanzas para terceros.
 
 ```
 contexto/                    documentos del cliente: briefs, contratos, datos que entrega
-entregables/<DD-mmm-YYYY>/   informes, propuestas, presentaciones, por fecha y categoría
+entregables/                 informes, propuestas, presentaciones: <categoria>/<P-NNN-fecha>/
 historial/                   datos crudos de cada corrida, para comparar en el tiempo
 plantillas/                  formatos base de los entregables que se repiten
 investigacion/  memoria/  bitacora-peticiones.md
 ```
 
-Casi siempre `multiproyecto` (un proyecto por cliente): `proyectos/<cliente>/`
+Casi siempre `multiproyecto` (un proyecto por cliente; `entregables` →
+`proyectos/<proyecto>/`, así las categorías quedan al lado de contexto y
+memoria sin pasar de 5 niveles): `proyectos/<cliente>/`
 con contexto, entregables, historial, memoria y bitácora; `plantillas/`,
 `investigacion/` y `memoria/` globales en la raíz.
 
@@ -109,11 +112,11 @@ Desarrollo, QA, DevOps, integraciones, automatización.
 docs/contexto/               requisitos, historias de usuario, decisiones de negocio
 docs/decisiones/             registros de decisiones de arquitectura (ADR), uno por archivo
 docs/specs/                  especificaciones y criterios de aceptación por funcionalidad
-trabajo/<DD-mmm-YYYY>/       entregables que no son código: análisis, planes, informes
+trabajo/                     entregables que no son código: análisis, planes, informes
 investigacion/  memoria/  bitacora-peticiones.md
 ```
 
-Rutas: `contexto` → `docs/contexto/`, `entregables` → `trabajo/<DD-mmm-YYYY>/`.
+Rutas: `contexto` → `docs/contexto/`, `entregables` → `trabajo/`.
 El código sigue su propia estructura; los skills que se creen pueden incluir
 scripts del proyecto.
 
@@ -126,11 +129,11 @@ contexto/                    diccionarios de datos, definiciones de indicadores,
 datos/crudos/                exportes y fuentes originales — inmutables
 datos/procesados/            datos limpios y transformados — regenerables
 analisis/                    consultas, cuadernos, scripts reproducibles
-reportes/<DD-mmm-YYYY>/      tableros, informes y conclusiones por fecha
+reportes/                    tableros, informes y conclusiones por fecha
 investigacion/  memoria/  bitacora-peticiones.md
 ```
 
-Rutas: `entregables` → `reportes/<DD-mmm-YYYY>/`. Si los datos son
+Rutas: `entregables` → `reportes/`. Si los datos son
 sensibles o pesados, sugerir agregar `datos/` al `.gitignore` (se pregunta).
 
 ### `contenido-y-comunicacion`
@@ -141,12 +144,12 @@ Marketing, redacción, redes, prensa, comunicación interna, formación.
 contexto/                    marca, voz y tono, público, lineamientos, calendario
 ideas/                       banco de ideas y briefs por pieza
 borradores/                  piezas en elaboración
-publicado/<DD-mmm-YYYY>/     versión final de lo que salió, con su fecha y canal
+publicado/                   versión final de lo que salió, con su fecha y canal
 recursos/                    imágenes, logos y material reutilizable
 investigacion/  memoria/  bitacora-peticiones.md
 ```
 
-Rutas: `entregables` → `publicado/<DD-mmm-YYYY>/`. El flujo es
+Rutas: `entregables` → `publicado/`. El flujo es
 `ideas → borradores → publicado`; publicar fuera del espacio siempre pide
 confirmación.
 
@@ -158,12 +161,12 @@ Gerencia de proyectos, coordinación, operaciones, RR. HH., compras, calidad.
 contexto/                    alcance, contratos, organigrama, procesos vigentes
 seguimiento/                 actas, reuniones, pendientes y riesgos, por fecha
 procesos/                    procedimientos y listas de verificación del área
-reportes/<DD-mmm-YYYY>/      reportes de gestión y presentaciones al comité
+reportes/                    reportes de gestión y presentaciones al comité
 plantillas/                  formatos de acta, reporte, solicitud
 investigacion/  memoria/  bitacora-peticiones.md
 ```
 
-Rutas: `entregables` → `reportes/<DD-mmm-YYYY>/`. Los procedimientos que se
+Rutas: `entregables` → `reportes/`. Los procedimientos que se
 repiten son los mejores candidatos a skill.
 
 ### `investigacion-y-aprendizaje`
@@ -174,11 +177,11 @@ Estudio de un tema, I+D, tesis, preparación de certificaciones, documentación.
 contexto/                    temario, objetivos, bibliografía base
 fuentes/                     artículos, libros, enlaces y notas de lectura
 notas/                       síntesis por tema, enlazadas entre sí
-producciones/<DD-mmm-YYYY>/  ensayos, resúmenes, presentaciones, código de práctica
+producciones/                ensayos, resúmenes, presentaciones, código de práctica
 investigacion/  memoria/  bitacora-peticiones.md
 ```
 
-Rutas: `entregables` → `producciones/<DD-mmm-YYYY>/`. Aquí la memoria y las
+Rutas: `entregables` → `producciones/`. Aquí la memoria y las
 investigaciones son el corazón: se enfatiza el protocolo de investigación.
 
 ## Cómo explicarlo a la persona

@@ -41,7 +41,7 @@ import comun  # noqa: E402
 TITULO = re.compile(r"^### (P-\d{3,}) — (.+?)\s*$")
 META = re.compile(r"^<!--\s*(.*?)\s*-->\s*$")
 CAMPOS = ("fecha", "skills", "memoria", "archivos", "proceso", "estado")
-LISTAS = ("skills", "memoria", "archivos")
+LISTAS = ("skills", "memoria", "archivos", "deriva_en")
 ESTADOS = ("resuelta", "parcial", "abierta")
 TIEMPOS = ("manual", "claude")
 INICIO = "<!-- procesos-candidatos:inicio -->"
@@ -81,6 +81,8 @@ def parsear(texto: str) -> tuple[list[dict], list[str]]:
             errores.append(f"{e['id']}: estado {e['estado']!r} no es {'|'.join(ESTADOS)}")
         if e.get("proceso") and not SLUG.match(e["proceso"]):
             errores.append(f"{e['id']}: proceso {e['proceso']!r} no es un slug kebab-case")
+        if e.get("hora") and not re.match(r"^([01]\d|2[0-3]):[0-5]\d$", e["hora"]):
+            errores.append(f"{e['id']}: la hora {e['hora']!r} no es HH:MM")
         for k in TIEMPOS:
             v = str(e.get(k, "")).strip()
             if not v:
@@ -105,6 +107,37 @@ def parsear(texto: str) -> tuple[list[dict], list[str]]:
     for d in sorted({x for x in ids if ids.count(x) > 1}):
         errores.append(f"{d}: id repetido")
     return entradas, errores
+
+
+def formatear(e: dict) -> str:
+    """Entrada en el formato exacto, lista para insertar."""
+    meta = [f"fecha: {e['fecha']}", f"hora: {e.get('hora', '')}"]
+    meta += [f"{k}: {', '.join(e.get(k) or [])}" for k in ("skills", "memoria", "archivos")]
+    meta += [f"proceso: {e.get('proceso', '')}", f"estado: {e.get('estado', 'resuelta')}"]
+    if e.get("deriva_en"):
+        meta.append(f"deriva_en: {', '.join(e['deriva_en'])}")
+    for k in TIEMPOS:
+        if e.get(k):
+            meta.append(f"{k}: {int(e[k])}")
+    partes = [f"### {e['id']} — {e['titulo']}", "<!-- " + " | ".join(meta) + " -->", "",
+              f"**Petición:** {e['peticion']}", "", f"**Cómo se resolvió:** {e['como']}", ""]
+    for clave, titulo in (("patrones", "Patrones y atajos"), ("adyacente", "Conocimiento adyacente"),
+                          ("correccion", "Corrección del usuario")):
+        if e.get(clave):
+            partes += [f"**{titulo}:** {e[clave]}", ""]
+    return "\n".join(partes)
+
+
+def insertar(p: Path, entrada: str) -> None:
+    """Agrega la entrada al final de «Entradas», antes de «Procesos candidatos»."""
+    texto = p.read_text(encoding="utf-8")
+    marca = "## Procesos candidatos"
+    if marca in texto:
+        antes, despues = texto.split(marca, 1)
+        texto = antes.rstrip("\n") + "\n\n" + entrada.rstrip("\n") + "\n\n" + marca + despues
+    else:
+        texto = texto.rstrip("\n") + "\n\n" + entrada.rstrip("\n") + "\n"
+    comun.escribir(p, texto)
 
 
 def siguiente(entradas: list[dict]) -> str:

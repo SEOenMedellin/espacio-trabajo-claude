@@ -61,8 +61,8 @@ persona).
 ## Antes de cada tarea — verificar antes de inferir
 
 0. Si es una tarea del trabajo de la persona (no configurar el espacio ni
-   crear skills), poner en marcha el reloj:
-   `{{PY}} {{SKILL_REL}}/scripts/tiempo.py --empezar <proceso>{{PROYECTO_FLAG}}`.
+   crear skills), abrirla: da el id, crea su carpeta y pone el reloj:
+   `{{PY}} {{SKILL_REL}}/scripts/tarea.py --empezar --proceso <tipo> --categoria <categoria>{{PROYECTO_FLAG}}`.
 1. `{{PY}} {{SKILL_REL}}/scripts/grafo.py --plan "<la petición>"{{PROYECTO_FLAG}}`:
    dice qué skills invocar, qué memoria leer, qué contexto aplica y qué
    peticiones parecidas ya se resolvieron.
@@ -77,8 +77,9 @@ contexto se consultaron.
 
 ## Durante la tarea
 
-- Los entregables van a `{{ENTREGABLES}}<categoria>/<archivo>` (fecha
-  `DD-mmm-YYYY`). Lo que otra tarea deba releer como insumo va a `{{CONTEXTO}}`.
+- Los entregables van a la carpeta que dio `tarea.py --empezar`
+  (`{{ENTREGABLES}}{{PATRON_ENTREGA}}`). Lo que otra tarea deba releer como
+  insumo va a `{{CONTEXTO}}`.
 - **Enriquecimiento proactivo:** si aparece una restricción, dependencia,
   peculiaridad del negocio o advertencia que nadie mencionó, se anota (en la
   entrada de la bitácora como «Conocimiento adyacente» y, si sirve a futuro,
@@ -100,21 +101,29 @@ recordar, y hacer **una sola** `AskUserQuestion` con dos preguntas:
   opción es ese valor («Lo mismo que la vez pasada: 2 h»); si no, opciones
   como 30 min · 1 h · 2 h · medio día. Con «Otro» dice el tiempo exacto.
 
-Con la respuesta, `tiempo.py --terminar{{PROYECTO_FLAG}}` da los minutos con
-Claude. Dile en una frase el resultado: «Con Claude: 25 min; a mano: 2 h. Te
-ahorraste 1 h 35 min.» Después, en silencio:
+Con el sí, un solo comando registra todo (entrada de la bitácora con fecha y
+hora, `memoria.md` junto al entregable, tiempo ahorrado, tabla de procesos,
+memoria y grafo) y te da la frase que le dices a la persona («Con Claude:
+25 min; a mano: 2 h. Te ahorraste 1 h 35 min.»):
 
-1. Entrada en `{{BITACORA}}` con el formato exacto (`{{DOCS}}/bitacoras.md`),
-   con `manual:` y `claude:` en minutos, y «Patrones y atajos» y
-   «Conocimiento adyacente» cuando los haya. Las correcciones de la persona
-   siempre van en la entrada.
-2. Nodo de memoria si se aprendió algo: global (`{{MEMORIA_GLOBAL}}`) si sirve a
-   cualquier proyecto, del proyecto (`{{MEMORIA_PROYECTO}}`) si es específico
-   (`{{DOCS}}/memoria.md`).
-3. `bitacora.py --tabla{{PROYECTO_FLAG}}`, `memoria.py --rebuild` y `grafo.py --actualizar`.
-4. Si la tarea usó un atajo por primera vez, completar su sección «Cómo se
-   hace» con lo que funcionó (con el sí de la persona).
-5. Si la tabla «Procesos candidatos» marca un proceso repetido o corregido
+```bash
+{{PY}} {{SKILL_REL}}/scripts/tarea.py --cerrar --datos -{{PROYECTO_FLAG}} <<'FIN'
+{"titulo": "…", "peticion": "…con sus palabras", "como": "…pasos y decisiones",
+ "patrones": "…", "adyacente": "…", "correccion": "…",
+ "skills": [], "memoria": [], "deriva_en": [], "estado": "resuelta", "manual": 120}
+FIN
+```
+
+Los campos `patrones`, `adyacente`, `correccion`, `skills`, `memoria` y
+`deriva_en` se omiten si no aplican; `manual` son los minutos que dijo la
+persona. Después, solo si aplica:
+
+1. Nodo de memoria si se aprendió algo que sirve a futuro: global
+   (`{{MEMORIA_GLOBAL}}`) o del proyecto (`{{MEMORIA_PROYECTO}}`), con sus
+   relaciones tipadas (`{{DOCS}}/memoria.md`); su id va en `deriva_en`.
+2. Si la tarea usó un atajo por primera vez, completar sus secciones «Cómo se
+   hace» y «Validaciones» con lo que funcionó (con el sí de la persona).
+3. Si la tabla «Procesos candidatos» marca un proceso repetido o corregido
    que aún no tiene atajo, proponerle convertirlo en uno (`{{DOCS}}/crear-skills.md`).
 
 Un hook `Stop` lo recuerda una vez por sesión si hubo cambios sin registrar.
@@ -179,7 +188,9 @@ Todas desde la raíz:
 | `{{PY}} {{SKILL_REL}}/scripts/memoria.py --rebuild` | Validar la memoria y regenerar sus índices |
 | `{{PY}} {{SKILL_REL}}/scripts/verificar.py` | Estado del espacio (reparar con `montar.py`) |
 | `{{PY}} {{SKILL_REL}}/scripts/arranque.py` | Lo que falta para tener el espacio al 100 % |
-| `{{PY}} {{SKILL_REL}}/scripts/tiempo.py --empezar <proceso>` / `--terminar` / `--estimacion <proceso>` | Tiempo de cada tarea con Claude |
+| `{{PY}} {{SKILL_REL}}/scripts/tarea.py --empezar` / `--cerrar` | Abrir y cerrar una tarea: carpeta, reloj, bitácora, `memoria.md` y grafo |
+| `{{PY}} {{SKILL_REL}}/scripts/tiempo.py --estimacion <proceso>` | Última estimación manual de ese tipo de tarea |
+| `docs/espacio-de-trabajo/graph.md` | El grafo legible: qué requirió cada tarea, qué resolvió y en qué derivó |
 | `{{PY}} {{SKILL_REL}}/scripts/resumen.py [--guardar]` | Resumen semanal: tareas, tiempo ahorrado, aprendizajes |
 | `{{PY}} {{SKILL_REL}}/scripts/programas.py` | Programas para trabajar y cómo instalarlos |
 

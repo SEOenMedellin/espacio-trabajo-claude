@@ -33,7 +33,7 @@ def propuesta(resp: dict) -> str:
 
     out.append(f"**Tus carpetas** ({arq.get('por_que', '').rstrip('.')}):")
     nucleo = [(rutas.get("contexto"), "lo que necesito saber de tu proyecto (documentos, normas, ejemplos)"),
-              (rutas.get("entregables"), "lo que entregas, ordenado por fecha"),
+              (rutas.get("entregables"), "lo que entregas: una carpeta por tarea, con lo aprendido en ella"),
               (rutas.get("investigacion"), "lo que investiguemos, con sus fuentes"),
               (rutas.get("memoria_global"), "lo que vayamos aprendiendo")]
     for ruta, para in nucleo + [(c.get("ruta"), c.get("para", "")) for c in arq.get("carpetas", [])]:

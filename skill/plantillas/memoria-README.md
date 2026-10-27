@@ -14,7 +14,7 @@ tipo: proceso
 ambito: global
 fecha: 01-ene-2026
 tags: [tema, herramienta]
-relacionado: [otro-nodo]
+relacionado: [requiere:otro-nodo, deriva_en:nodo-derivado]
 ---
 
 ## Problema
@@ -26,6 +26,12 @@ Lo que hay que hacer, en pasos o en una regla clara.
 **Por qué:** la razón (sin ella, la regla se rompe en el primer caso raro).
 **Cómo aplicarlo:** cuándo entra en juego.
 ```
+
+Relaciones (`relacionado`): cada id puede llevar su tipo delante —
+`requiere:` (este nodo necesita el otro), `resuelve:` (este nodo resuelve lo
+que plantea el otro), `deriva_en:` (de este nodo salió el otro). Sin tipo,
+la relación es `relacionado`. El grafo y `docs/espacio-de-trabajo/graph.md`
+las muestran con su tipo.
 
 Tipos: `restriccion` (algo que no se puede), `solucion` (un problema y su
 arreglo), `decision` (qué se eligió y por qué), `proceso` (pasos que se

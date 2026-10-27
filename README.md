@@ -200,9 +200,11 @@ comando de instalación dentro de cada proyecto donde lo quieras.
 Vuelve a ejecutar el mismo comando de instalación. Se reemplaza el skill y tu
 trabajo (carpetas, memoria, bitácora) no se toca.
 
-**¿Cómo lo quito?**
-Borra la carpeta `.claude/skills/primeros-pasos` y las entradas de `hooks` que
-apuntan a ella en `.claude/settings.json`. Tus carpetas y notas se quedan.
+**¿Puedo quitarlo cuando termine?**
+Sí. Cuando tu espacio queda listo, el propio asistente te ofrece
+**desactivarlo** (deja de aparecer, pero puedes reactivarlo) o
+**eliminarlo**. Todo lo que armó sigue funcionando igual: carpetas, atajos,
+memoria, bitácora y resumen semanal. También puedes pedírselo cuando quieras.
 
 **Prefiero no ejecutar un script descargado.**
 Es comprensible. Revisa antes [`install.sh`](install.sh) o

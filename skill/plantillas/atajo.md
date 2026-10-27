@@ -10,18 +10,22 @@ description: >
 
 <!-- atajo de primeros-pasos · proceso: {{SLUG}} -->
 
-Atajo creado por `primeros-pasos` para que esta tarea salga igual de bien
-cada vez. La persona lo usa escribiendo `/{{SLUG}}` o pidiéndola con sus
-palabras.
+Atajo creado al preparar el espacio de trabajo, para que esta tarea salga
+igual de bien cada vez. La persona lo usa escribiendo `/{{SLUG}}` o
+pidiéndola con sus palabras.
+
+## Disparadores
+
+Cuando la persona pide «{{TAREA}}» o algo equivalente. Si pide otra cosa,
+este atajo no aplica.
 
 ## Antes de empezar
 
-1. Pon en marcha el reloj de la tarea, para medir el tiempo ahorrado:
-   `{{PY}} {{SKILL_REL}}/scripts/tiempo.py --empezar {{SLUG}}{{PROYECTO_FLAG}}`
+1. Abre la tarea (da el id, crea su carpeta y pone el reloj en marcha):
+   `{{PY}} {{SKILL_REL}}/scripts/tarea.py --empezar --proceso {{SLUG}} --categoria {{SLUG}}{{PROYECTO_FLAG}}`
 2. `{{PY}} {{SKILL_REL}}/scripts/grafo.py --plan "{{TAREA}}"{{PROYECTO_FLAG}}`, y lee la
    memoria y el contexto que marque.
-3. Repasa los lineamientos del rol en `{{DOCS}}/perfil.md` que apliquen a
-   esta entrega.
+3. Repasa los lineamientos del rol en `{{DOCS}}/perfil.md` que apliquen.
 
 ## Cómo se hace
 
@@ -29,18 +33,33 @@ palabras.
 Todavía no se ha hecho esta tarea con Claude. La primera vez, hazla con el
 protocolo del espacio (`CLAUDE.md`) y pregúntale a la persona lo que haga
 falta. Al cerrar, y solo con su sí, reemplaza este párrafo por los pasos que
-funcionaron, el formato de la entrega y las correcciones que hizo, para que la
-próxima vez salga igual sin volver a preguntar.
+funcionaron, el formato de la entrega y las correcciones que hizo.
 <!-- proceso:fin -->
 
-## Entrega
+## Validaciones
 
-Va a `{{ENTREGABLES}}{{SLUG}}/` con la fecha del día (`DD-mmm-YYYY`).
+Antes de entregar, comprueba:
+
+<!-- validaciones:inicio -->
+- La entrega es la que se pidió ({{ENTREGA}}) y responde a la petición.
+- Respeta los lineamientos del rol y las correcciones anteriores de la persona.
+- Cada dato que sostiene una decisión cita su fuente o está marcado *no verificado*.
+- El archivo está en la carpeta de la tarea y su nombre no tiene espacios ni acentos.
+
+La primera vez que se haga, al cerrar y con el sí de la persona, agrega aquí
+los criterios propios de esta tarea (cifras que deben cuadrar, secciones
+obligatorias, formato que exige quien la recibe).
+<!-- validaciones:fin -->
+
+## Salida
+
+La entrega queda en la carpeta que dio `tarea.py --empezar`
+(`{{ENTREGABLES}}{{SLUG}}/<P-NNN>-<fecha>/`), junto a su `memoria.md`.
 
 ## Al terminar
 
-Protocolo de cierre del `CLAUDE.md`, con `proceso: {{SLUG}}` en la entrada de
-la bitácora y la pregunta de tiempo: cuánto le habría tomado a mano (si ya
-lo estimó antes, `tiempo.py --estimacion {{SLUG}}` y se le propone ese valor) y
-cuánto tomó con Claude (`tiempo.py --terminar{{PROYECTO_FLAG}}`). Dile en una
-frase cuánto tiempo se ahorró.
+Protocolo de cierre del `CLAUDE.md`: una sola pregunta con «¿Lo guardo así?»
+y «¿Cuánto te habría tomado a mano?» (si ya lo estimó antes,
+`tiempo.py --estimacion {{SLUG}}` y se le propone ese valor). Luego
+`tarea.py --cerrar --datos -{{PROYECTO_FLAG}}` hace el resto y te da la frase
+del tiempo ahorrado para decírsela.

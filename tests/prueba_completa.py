@@ -12,6 +12,7 @@ Sale con código 1 si algo falla. Solo biblioteca estándar, Python 3.10+.
 """
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -25,6 +26,8 @@ for _f in (sys.stdout, sys.stderr):
         pass
 
 SKILL = Path(__file__).resolve().parents[1] / "skill"
+sys.path.insert(0, str(SKILL / "scripts"))
+import comun  # noqa: E402
 BASE = Path(tempfile.mkdtemp(prefix="pp-"))
 SILENCIO = "-q" in sys.argv
 fallos = []
@@ -44,6 +47,12 @@ def run(repo, args, stdin=None, esperado=None):
     if esperado is not None and r.returncode != esperado:
         fallos.append(f"{args} devolvió {r.returncode}, esperaba {esperado}")
     return r
+
+
+def bitacora_entradas(repo_):
+    sys.path.insert(0, str(SKILL / "scripts"))
+    import bitacora as _b
+    return _b.parsear((repo_ / "bitacora-peticiones.md").read_text(encoding="utf-8"))[0]
 
 
 def repo(nombre):
@@ -86,7 +95,7 @@ resp = {
                      "carpetas": [{"ruta": "datos/crudos/", "para": "Exportes originales"},
                                   {"ruta": "datos/procesados/", "para": "Datos limpios"},
                                   {"ruta": "analisis/", "para": "Consultas y scripts"}]},
-    "rutas": {"contexto": "contexto/", "entregables": "reportes/<DD-mmm-YYYY>/", "investigacion": "investigacion/",
+    "rutas": {"contexto": "contexto/", "entregables": "reportes/", "investigacion": "investigacion/",
               "memoria_global": "memoria/", "bitacora_peticiones": "bitacora-peticiones.md"},
     "credenciales": [{"variable": "ERP_USUARIO", "para": "Usuario de solo lectura"}],
     "programas": [{"nombre": "Programa ausente", "para": "Correr el análisis",
@@ -167,7 +176,7 @@ if sorted(cfg["arquitectura"]["preexistentes"]) != ["README.md", "src"]:
 atajo = A / ".claude/skills/actualizar-el-tablero-semanal/SKILL.md"
 if not atajo.is_file() or "name: actualizar-el-tablero-semanal" not in atajo.read_text(encoding="utf-8"):
     fallos.append("montar no creó el atajo de la tarea habitual")
-elif "tiempo.py --empezar actualizar-el-tablero-semanal" not in atajo.read_text(encoding="utf-8"):
+elif "tarea.py --empezar --proceso actualizar-el-tablero-semanal" not in atajo.read_text(encoding="utf-8"):
     fallos.append("el atajo no pone en marcha el reloj de la tarea")
 r = run(A, ["arranque.py", "--json"], esperado=1)
 pasos_ok = {x["id"]: x["ok"] for x in json.loads(r.stdout)["pasos"]}
@@ -226,7 +235,7 @@ if len(json.loads(run(A, ["resumen.py", "--json", "--hasta", "27-oct-2026", "--d
 r = run(A, ["resumen.py", "--hasta", "27-oct-2026", "--guardar"], esperado=0)
 if "Te ahorraste" in r.stdout or "2 h 25 min" not in r.stdout:
     fallos.append("el resumen no muestra el ahorro en horas y minutos")
-if not (A / "reportes/27-oct-2026/resumenes/resumen-27-oct-2026.md").is_file():
+if not (A / "reportes/resumenes/resumen-27-oct-2026/resumen-27-oct-2026.md").is_file():
     fallos.append("resumen --guardar no dejó el entregable")
 if "resumen semanal" in run(A, ["inicio.py"], stdin="{}").stdout:
     fallos.append("el aviso de inicio ofrece el resumen aunque se acaba de ver")
@@ -240,14 +249,53 @@ r = run(A, ["grafo.py", "--plan", "redactar un contrato de arrendamiento"], espe
 if "Sin antecedentes" not in r.stdout:
     fallos.append("el plan no marcó 'sin antecedentes'")
 
+# abrir y cerrar una tarea: carpeta por tarea, memoria.md, hora y grafo tipado
+(A / "memoria/tablero-desde-exporte.md").write_text(
+    "---\nid: tablero-desde-exporte\ntitulo: El tablero se arma desde el exporte\ntipo: proceso\nambito: global\n"
+    "fecha: 27-oct-2026\ntags: [tablero]\nrelacionado: [requiere:otif-se-calcula-por-pedido]\n---\nCuerpo.\n",
+    encoding="utf-8")
+r = run(A, ["tarea.py", "--empezar", "--proceso", "tablero-semanal", "--categoria", "informes", "--json"], esperado=0)
+t = json.loads(r.stdout)
+if t["carpeta"] != f"reportes/informes/{t['id']}-{comun.hoy()}" or not (A / t["carpeta"]).is_dir():
+    fallos.append(f"tarea.py no creó la carpeta de la tarea: {t}")
+(A / t["carpeta"] / "tablero.md").write_text("# Tablero\n", encoding="utf-8")
+cierre = {"titulo": "Tablero de la semana 3", "peticion": "Actualizar el tablero.", "como": "Con el exporte.",
+          "patrones": "Filtrar devoluciones primero.", "memoria": ["tablero-desde-exporte"],
+          "deriva_en": ["otif-se-calcula-por-pedido"], "manual": 90}
+r = run(A, ["tarea.py", "--cerrar", "--datos", "-"], stdin=json.dumps(cierre), esperado=0)
+if "Te ahorraste" not in r.stdout:
+    fallos.append(f"tarea.py no dijo el tiempo ahorrado: {r.stdout!r}")
+entrada = [e for e in bitacora_entradas(A) if e["id"] == t["id"]]
+if not entrada or not re.match(r"^\d{2}:\d{2}$", entrada[0].get("hora", "")) or entrada[0].get("manual") != 90:
+    fallos.append(f"la entrada de la bitácora no tiene hora o tiempos: {entrada}")
+elif entrada[0].get("archivos") != [f"{t['carpeta']}/tablero.md"]:
+    fallos.append(f"la entrada no registró el entregable: {entrada[0].get('archivos')}")
+mem = A / t["carpeta"] / "memoria.md"
+if not mem.is_file() or "Filtrar devoluciones" not in mem.read_text(encoding="utf-8") \
+        or "resuelve → proceso" not in mem.read_text(encoding="utf-8"):
+    fallos.append("tarea.py no dejó memoria.md con lo aprendido y sus relaciones")
+run(A, ["bitacora.py"], esperado=0)
+g = json.loads((A / ".espacio/grafo.json").read_text(encoding="utf-8"))
+rels = {(a["de"].split(":", 1)[0], a["rel"], a["a"].split(":", 1)[0]) for a in g["aristas"]}
+for esperado in [("peticion", "requiere", "memoria"), ("peticion", "resuelve", "proceso"),
+                 ("peticion", "deriva_en", "archivo"), ("peticion", "deriva_en", "memoria"),
+                 ("memoria", "requiere", "memoria")]:
+    if esperado not in rels:
+        fallos.append(f"el grafo no tiene la relación tipada {esperado}")
+gm = A / "docs/espacio-de-trabajo/graph.md"
+if not gm.is_file() or "resuelve →" not in gm.read_text(encoding="utf-8"):
+    fallos.append("no se generó graph.md con relaciones legibles")
+if "## Validaciones" not in (A / ".claude/skills/actualizar-el-tablero-semanal/SKILL.md").read_text(encoding="utf-8"):
+    fallos.append("el atajo no tiene sección Validaciones")
+
 # hooks de inicio y cierre
 r = run(A, ["inicio.py"], stdin=json.dumps({"session_id": "s1"}), esperado=0)
 for parte in ("Última sesión de trabajo", "P-001", "Skills disponibles", "otif-se-calcula-por-pedido"):
     if parte not in r.stdout:
         fallos.append(f"inicio.py no muestra {parte!r}")
 run(A, ["cierre_check.py"], stdin=json.dumps({"session_id": "s1"}), esperado=0)
-(A / "reportes/27-oct-2026/informes").mkdir(parents=True)
-(A / "reportes/27-oct-2026/informes/semana.md").write_text("x")
+(A / "reportes/informes/P-009-27-oct-2026").mkdir(parents=True)
+(A / "reportes/informes/P-009-27-oct-2026/semana.md").write_text("x")
 r = run(A, ["cierre_check.py"], stdin=json.dumps({"session_id": "s1"}), esperado=0)
 if '"block"' not in r.stdout:
     fallos.append("cierre_check no bloqueó con cambios sin bitácora")
@@ -259,8 +307,9 @@ if r.stdout.strip():
 largo = "x" * 70
 for ruta, debe in [("informe.md", "deny"), ("reportes/informe.md", "deny"), ("cosas/a.md", "deny"),
                    ("analisis/Mi Consulta.sql", "deny"), ("analisis/a/b/c/d/e/f.sql", "deny"),
-                   (f"reportes/27-oct-2026/informes/{largo}.md", "deny"),
-                   ("reportes/27-oct-2026/informes/b.md", ""), ("memoria/nuevo-nodo.md", ""),
+                   (f"reportes/informes/P-001-27-oct-2026/{largo}.md", "deny"),
+                   ("reportes/informes/b.md", "deny"), ("reportes/27-oct-2026/informes/b.md", "deny"),
+                   ("reportes/informes/P-001-27-oct-2026/b.md", ""), ("memoria/nuevo-nodo.md", ""),
                    ("contexto/Brief Cliente.pdf", ""), ("src/nuevo.py", ""),
                    (".claude/skills/x/SKILL.md", ""), ("README.md", "")]:
     salida = write(A, ruta)
@@ -284,9 +333,8 @@ run(A, ["ordenar.py"], esperado=1)
 run(A, ["ordenar.py", "--aplicar", "--solo", "Informe Final.md,export ventas.csv"], esperado=0)
 if (A / "Informe Final.md").exists() or not (A / "brief del cliente.md").exists():
     fallos.append("--solo no respetó la selección")
-if not (A / "reportes/27-oct-2026/informes/informe-final.md").exists() and not list(
-        (A / "reportes").glob("*/informes/informe-final.md")):
-    fallos.append("el informe no quedó en reportes/<fecha>/informes/")
+if not list((A / "reportes").glob("informes/previo-*/informe-final.md")):
+    fallos.append("el informe no quedó en reportes/informes/previo-<fecha>/")
 run(A, ["ordenar.py"])
 
 # ---------- Repo B: multiproyecto, entregables a clientes
@@ -403,6 +451,44 @@ run(C, ["inventario.py", "--cambios"], esperado=0)
 run(C, ["inventario.py", "--cambios"], esperado=1)
 if "por revisar: publicar" not in run(C, ["inicio.py"], stdin="{}").stdout:
     fallos.append("el aviso de inicio no avisa del skill cambiado")
+
+# ---------- Repo D: retirar el skill sin tocar lo que creó
+D = repo("d")
+(D / "respuestas-espacio.json").write_text(json.dumps(resp, ensure_ascii=False), encoding="utf-8")
+run(D, ["montar.py", "--respuestas", "respuestas-espacio.json"], esperado=0)
+if run(D, ["retirar.py", "--estado"]).stdout.strip() != "activo":
+    fallos.append("retirar --estado no dice activo")
+run(D, ["retirar.py", "--desactivar"], esperado=0)
+ajustes = (D / ".claude/settings.json").read_text(encoding="utf-8")
+if (D / ".claude/skills/primeros-pasos/SKILL.md").exists() or "activar.py" in ajustes or "inicio.py" not in ajustes:
+    fallos.append("desactivar no apagó el skill o quitó hooks que debían seguir")
+run(D, ["verificar.py"], esperado=0)
+run(D, ["montar.py"], esperado=0)
+if "activar.py" in (D / ".claude/settings.json").read_text(encoding="utf-8"):
+    fallos.append("reparar volvió a registrar la activación de un skill desactivado")
+run(D, ["retirar.py", "--reactivar"], esperado=0)
+if not (D / ".claude/skills/primeros-pasos/SKILL.md").is_file() or \
+        "activar.py" not in (D / ".claude/settings.json").read_text(encoding="utf-8"):
+    fallos.append("reactivar no devolvió el skill y su activación")
+run(D, ["retirar.py", "--eliminar"], esperado=0)
+nuevo = D / ".claude/espacio/scripts"
+if (D / ".claude/skills/primeros-pasos").exists() or not (nuevo / "inicio.py").is_file():
+    fallos.append("eliminar no trasladó las herramientas o dejó el skill")
+for f in (".claude/settings.json", "CLAUDE.md", ".claude/skills/actualizar-el-tablero-semanal/SKILL.md"):
+    texto = (D / f).read_text(encoding="utf-8")
+    if ".claude/skills/primeros-pasos" in texto or ".claude/espacio" not in texto:
+        fallos.append(f"eliminar no repuntó {f}")
+if "activar.py" in (D / ".claude/settings.json").read_text(encoding="utf-8"):
+    fallos.append("eliminar dejó la activación por palabras")
+for args in (["verificar.py"], ["inicio.py"], ["tarea.py", "--empezar", "--proceso", "x", "--categoria", "informes"]):
+    r = subprocess.run([sys.executable, str(nuevo / args[0]), *args[1:]], cwd=D, capture_output=True, text=True,
+                       encoding="utf-8", input="{}", env=dict(os.environ, CLAUDE_PROJECT_DIR=str(D)))
+    log(f"\n$ (trasladado) {' '.join(args)} → {r.returncode}\n{(r.stdout + r.stderr).strip()[:600]}")
+    if r.returncode != 0:
+        fallos.append(f"después de eliminar, {args[0]} no funciona desde .claude/espacio")
+for f in ("espacio.json", "bitacora-peticiones.md", "docs/espacio-de-trabajo/perfil.md"):
+    if not (D / f).is_file():
+        fallos.append(f"retirar el skill borró {f}")
 
 # ---------- Instaladores de una línea (desde copia local)
 RAIZ = SKILL.parent

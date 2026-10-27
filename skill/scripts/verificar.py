@@ -91,7 +91,8 @@ def revisar(raiz: Path, cfg: dict) -> list[tuple[str, str, str]]:
     st = raiz / ".claude" / "settings.json"
     try:
         hk = json.dumps(json.loads(st.read_text(encoding="utf-8")).get("hooks", {})) if st.is_file() else ""
-        faltan = [h for h in ("inicio.py", "cierre_check.py", "orden_check.py", "activar.py") if h not in hk]
+        faltan = [h for h in ("inicio.py", "cierre_check.py", "orden_check.py") + (("activar.py",) if comun.activo() else ())
+                  if h not in hk]
         item("DIVERGE" if faltan else "OK", ".claude/settings.json",
              "faltan hooks: " + ", ".join(faltan) if faltan else "")
     except ValueError:

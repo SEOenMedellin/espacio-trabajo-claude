@@ -105,7 +105,7 @@ Se escribe en la raíz con `Write`; `montar.py` lo borra al terminar bien.
   },
   "rutas": {
     "contexto": "contexto/",
-    "entregables": "reportes/<DD-mmm-YYYY>/",
+    "entregables": "reportes/",
     "investigacion": "investigacion/",
     "memoria_global": "memoria/",
     "bitacora_peticiones": "bitacora-peticiones.md"
@@ -131,8 +131,9 @@ carga.
 
 Modo multiproyecto: `"modo": "multiproyecto"`, un bloque
 `"proyectos": {"base": "proyectos", "lista": ["cliente-a", "cliente-b"]}` y
-rutas con `<proyecto>`: `contexto`, `entregables`, `bitacora_peticiones` y
-`memoria_proyecto` (por ejemplo `proyectos/<proyecto>/memoria/`). La memoria
+rutas con `<proyecto>`: `contexto`, `entregables` (`proyectos/<proyecto>/`),
+`bitacora_peticiones` y `memoria_proyecto` (por ejemplo
+`proyectos/<proyecto>/memoria/`). La memoria
 global se queda en la raíz. Las carpetas extra pueden llevar `<proyecto>` si
 son por proyecto.
 

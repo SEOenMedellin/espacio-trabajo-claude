@@ -2,7 +2,7 @@
 """Hook PreToolUse: no deja que el espacio se deforme mientras se trabaja.
 
   - Write de un archivo NUEVO fuera de la arquitectura (suelto en la raíz, en
-    una carpeta no registrada, entregable sin <DD-mmm-YYYY>/<categoria>/,
+    una carpeta no registrada, entregable fuera de <categoria>/<P-NNN-fecha>/,
     nombre con espacios o acentos) → se niega, con la ruta que corresponde.
     Editar archivos que ya existen no se bloquea.
   - Bash o PowerShell que mueva o renombre archivos (mv, git mv, Move-Item,

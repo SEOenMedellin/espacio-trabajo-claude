@@ -26,7 +26,7 @@ Las entradas van bajo `## Entradas`, antes de `## Procesos candidatos`:
 
 ```markdown
 ### P-NNN — <título corto>
-<!-- fecha: DD-mmm-YYYY | skills: a, b | memoria: id1, id2 | archivos: ruta1, ruta2 | proceso: <slug> | estado: resuelta | manual: 120 | claude: 25 -->
+<!-- fecha: DD-mmm-YYYY | hora: HH:MM | skills: a, b | memoria: id1, id2 | archivos: ruta1, ruta2 | proceso: <slug> | estado: resuelta | deriva_en: id3 | manual: 120 | claude: 25 -->
 
 **Petición:** qué pidió la persona, con sus palabras.
 
@@ -48,6 +48,11 @@ mencionó pero que importan para próximas tareas.                     (opcional
   `revisar-contrato`), no de esta tarea. Antes de inventar uno, reutiliza un
   slug de la tabla si la tarea es del mismo tipo: así se cuentan las repeticiones.
 - `estado`: `resuelta`, `parcial` o `abierta`.
+- `hora`: `HH:MM` del cierre. `deriva_en`: lo que la tarea produjo además del
+  entregable (nodos de memoria, skills). Las entradas las escribe
+  `tarea.py --cerrar`; a mano solo si hace falta corregir una.
+- Junto al entregable queda `memoria.md`: qué se pidió, cómo se resolvió, lo
+  aprendido, el tiempo y sus relaciones (`requiere`, `resuelve`, `deriva_en`).
 - `manual` y `claude`: minutos enteros. `manual` es lo que la persona estima
   que le tomaría a mano, en promedio; `claude`, lo que tomó con Claude
   (`tiempo.py --terminar`). Si la persona no quiso responder, se dejan fuera.

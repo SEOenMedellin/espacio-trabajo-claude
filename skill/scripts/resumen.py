@@ -157,8 +157,10 @@ def main(argv=None) -> int:
         if comun.proyectos(cfg) and not a.proyecto:
             print("Hay varios proyectos: indica cuál con --proyecto para guardar el resumen.", file=sys.stderr)
             return 2
-        base = comun.resolver(cfg, a.proyecto)["entregables"].replace("<DD-mmm-YYYY>", comun.hoy(hasta))
-        destino = raiz / base / "resumenes" / f"resumen-{comun.hoy(hasta)}.md"
+        carpeta = comun.carpeta_tarea(cfg, a.proyecto, "resumenes", "resumen", comun.hoy(hasta))
+        if comun.legado(cfg):
+            carpeta = carpeta.rsplit("/", 1)[0]
+        destino = raiz / carpeta / f"resumen-{comun.hoy(hasta)}.md"
         comun.escribir(destino, texto)
         r["guardado"] = destino.relative_to(raiz).as_posix()
     if a.json:

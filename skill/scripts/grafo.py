@@ -92,7 +92,8 @@ def recolectar(raiz: Path, cfg: dict, proyecto: str | None = None) -> list[dict]
             continue
         items.append({"tipo": "memoria", "id": f"memoria:{n.get('id', n['archivo'].stem)}",
                       "titulo": n.get("titulo", ""), "texto": " ".join(n.get("tags") or []) + " " + n["cuerpo"][:1500],
-                      "ruta": n["archivo"].relative_to(raiz).as_posix(), "enlaces": n["enlaces"]})
+                      "ruta": n["archivo"].relative_to(raiz).as_posix(), "enlaces": n["enlaces"],
+                      "relaciones": n.get("relaciones", [])})
     lista = [proyecto] if proyecto else (comun.proyectos(cfg) or [None])
     for p in lista:
         r = comun.resolver(cfg, p)
@@ -109,7 +110,9 @@ def recolectar(raiz: Path, cfg: dict, proyecto: str | None = None) -> list[dict]
                           "titulo": e.get("titulo", ""), "texto": e.get("texto", "") + " " + e.get("proceso", ""),
                           "ruta": ruta.relative_to(raiz).as_posix(), "skills": e.get("skills", []),
                           "memoria": e.get("memoria", []), "archivos": e.get("archivos", []),
-                          "proceso": e.get("proceso", ""), "estado": e.get("estado", "")})
+                          "proceso": e.get("proceso", ""), "estado": e.get("estado", ""),
+                          "deriva_en": e.get("deriva_en", []), "fecha": e.get("fecha", ""),
+                          "hora": e.get("hora", "")})
     return items
 
 
@@ -182,26 +185,79 @@ def imprimir_plan(pl: dict) -> None:
               "Aplica el protocolo de investigación (docs/espacio-de-trabajo/investigacion.md).")
 
 
-def actualizar(raiz: Path, cfg: dict) -> str:
-    items = recolectar(raiz, cfg)
+def aristas_de(items: list[dict]) -> tuple[list[dict], list[dict]]:
+    """Relaciones tipadas: requiere (lo que una tarea necesitó), resuelve (el tipo de tarea
+    que atiende), deriva_en (lo que produjo: entregables, memoria, skills) y relacionado."""
     nodos = [{k: it[k] for k in ("id", "tipo", "titulo", "ruta")} for it in items]
     ids = {n["id"] for n in nodos}
     aristas = []
     for it in items:
         if it["tipo"] == "peticion":
             for s in it.get("skills", []):
-                aristas.append({"de": it["id"], "a": f"skill:{s}", "rel": "usa"})
+                aristas.append({"de": it["id"], "a": f"skill:{s}", "rel": "requiere"})
             for m in it.get("memoria", []):
-                aristas.append({"de": it["id"], "a": f"memoria:{m}", "rel": "usa"})
+                aristas.append({"de": it["id"], "a": f"memoria:{m}", "rel": "requiere"})
+            if it.get("proceso"):
+                pid = f"proceso:{it['proceso']}"
+                if pid not in ids:
+                    ids.add(pid)
+                    nodos.append({"id": pid, "tipo": "proceso", "titulo": it["proceso"], "ruta": ""})
+                aristas.append({"de": it["id"], "a": pid, "rel": "resuelve"})
             for f in it.get("archivos", []):
-                aristas.append({"de": it["id"], "a": f"archivo:{f}", "rel": "entrega"})
+                aristas.append({"de": it["id"], "a": f"archivo:{f}", "rel": "deriva_en"})
+            for d in it.get("deriva_en", []):
+                destino = d if ":" in d else (f"skill:{d}" if f"skill:{d}" in ids else f"memoria:{d}")
+                aristas.append({"de": it["id"], "a": destino, "rel": "deriva_en"})
         if it["tipo"] == "memoria":
-            for e in it.get("enlaces", []):
-                aristas.append({"de": it["id"], "a": f"memoria:{e}", "rel": "relacionado"})
+            for tipo, e in it.get("relaciones", []) or [("relacionado", e) for e in it.get("enlaces", [])]:
+                aristas.append({"de": it["id"], "a": f"memoria:{e}", "rel": tipo})
+    return nodos, aristas
+
+
+def graph_md(nodos: list[dict], aristas: list[dict]) -> str:
+    titulos = {n["id"]: n["titulo"] for n in nodos}
+    nombre = lambda i: titulos.get(i) or i.split(":", 1)[-1]  # noqa: E731
+    cuenta = {}
+    for n in nodos:
+        cuenta[n["tipo"]] = cuenta.get(n["tipo"], 0) + 1
+    out = ["# Grafo del espacio de trabajo", "",
+           f"Generado el {comun.hoy()} por `grafo.py --actualizar`; no se edita a mano.", "",
+           "Relaciones: **requiere** (lo que una tarea necesitó), **resuelve** (el tipo de tarea que atiende), "
+           "**deriva_en** (lo que produjo) y **relacionado**.", "",
+           "**Nodos:** " + (", ".join(f"{v} {k}" for k, v in sorted(cuenta.items())) or "ninguno"), ""]
+    por_origen: dict[str, list[dict]] = {}
+    for a in aristas:
+        por_origen.setdefault(a["de"], []).append(a)
+    for tipo, titulo in (("peticion", "Tareas"), ("memoria", "Memoria")):
+        grupo = [n for n in nodos if n["tipo"] == tipo and n["id"] in por_origen]
+        if not grupo:
+            continue
+        out += [f"## {titulo}", ""]
+        for n in grupo:
+            out.append(f"### {n['id'].split(':', 1)[-1]} — {n['titulo']}")
+            for a in sorted(por_origen[n["id"]], key=lambda x: (x["rel"], x["a"])):
+                out.append(f"- {a['rel']} → {a['a'].split(':', 1)[0]} `{nombre(a['a'])}`")
+            out.append("")
+    if 0 < len(aristas) <= 60:
+        ref = {}
+        def k(i):  # noqa: E306
+            return ref.setdefault(i, f"n{len(ref)}")
+        out += ["## Diagrama", "", "```mermaid", "graph LR"]
+        for a in aristas:
+            out.append(f'  {k(a["de"])}["{nombre(a["de"])[:40]}"] -->|{a["rel"]}| {k(a["a"])}["{nombre(a["a"])[:40]}"]')
+        out += ["```", ""]
+    return "\n".join(out).replace('"]', '"]').rstrip("\n") + "\n"
+
+
+def actualizar(raiz: Path, cfg: dict) -> str:
+    items = recolectar(raiz, cfg)
+    nodos, aristas = aristas_de(items)
+    ids = {n["id"] for n in nodos}
     huerfanas = sorted({a["a"] for a in aristas if a["a"] not in ids and not a["a"].startswith("archivo:")})
     destino = raiz / comun.ESTADO / "grafo.json"
     comun.escribir(destino, json.dumps({"generado": comun.hoy(), "nodos": nodos, "aristas": aristas,
                                         "referencias_rotas": huerfanas}, ensure_ascii=False, indent=1))
+    comun.escribir(raiz / comun.DOCS / "graph.md", graph_md(nodos, aristas))
     cuenta = {}
     for n in nodos:
         cuenta[n["tipo"]] = cuenta.get(n["tipo"], 0) + 1

@@ -279,6 +279,28 @@ le falte (todo opcional), y pon primero **hacer su primera tarea real**:
   del espacio: reloj en marcha al empezar y, al cerrar, la pregunta de cuánto
   le habría tomado a mano. Que vea el tiempo ahorrado desde el primer día.
 
+## Retirar el skill
+
+Cuando el espacio queda listo (la lista de arranque al 100 %, o al terminar el
+paso 9 si la persona no quiere seguir con la lista), ofrécele **una sola
+vez** retirar este asistente; lo que creó no se toca. El aviso de inicio te
+lo recuerda. Pregunta con `AskUserQuestion`:
+
+- **Mantenerlo** (recomendado si va a sumar proyectos, cambiar de cargo o
+  instalar más skills): sigue disponible para ampliar, reparar y revisar.
+- **Desactivarlo**: deja de aparecer y las palabras «empezar» o «configurar»
+  ya no lo abren. Todo sigue funcionando y se puede reactivar.
+- **Eliminarlo**: sus herramientas del día a día pasan a `.claude/espacio/`
+  y se borra el asistente. Para ampliar o reparar habrá que reinstalarlo con
+  el comando de una línea.
+
+```bash
+python <skill>/scripts/retirar.py --desactivar   # o --eliminar, --reactivar, --estado
+```
+
+Corre `--desactivar` o `--eliminar` solo con su sí, y dile la frase que
+devuelve el script.
+
 ## Reorganizar
 
 Cuando el aviso de inicio dice que hay archivos fuera de lugar, o la persona
@@ -352,6 +374,7 @@ revisa la copia y vuelve a aplicar su cambio.
 | `propuesta.py` | La propuesta del paso 6, en lenguaje sencillo y lista para mostrar |
 | `inventario.py` | Skills, comandos, agentes, reglas, hooks y MCP que ya trae el repositorio (`--json`, `--cambios`, `--guardar`) |
 | `auditar.py` | Problemas de seguridad, lógica, contradicciones y arquitectura en lo existente (`--json`, `--reglas`) |
+| `retirar.py` | Desactivar, reactivar o eliminar este skill sin tocar lo que creó (`--estado`) |
 | `activar.py` | Hook de activación por palabras (`--probar "texto"`, `--registrar`) |
 | `programas.py` | Programas para trabajar: estado, `--comando <nombre>` y `--instalar <nombre>` (solo con el sí de la persona) |
 | `arranque.py` | Lista de arranque: avance y cómo completar cada pendiente (`--breve`, `--json`) |
