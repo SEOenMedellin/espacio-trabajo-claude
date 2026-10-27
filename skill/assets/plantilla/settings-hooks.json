@@ -1,0 +1,38 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{PY}} \"$CLAUDE_PROJECT_DIR/{{SKILL_REL}}/scripts/inicio.py\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{PY}} \"$CLAUDE_PROJECT_DIR/{{SKILL_REL}}/scripts/cierre_check.py\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{PY}} \"$CLAUDE_PROJECT_DIR/{{SKILL_REL}}/scripts/orden_check.py\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}
