@@ -40,6 +40,10 @@ va cada cosa, qué se resolvió antes y cómo aprender de cada tarea.
 | `credenciales/` | `.env` fuera de git y `.env.example` con los accesos previstos |
 | Hooks | `SessionStart`: última sesión, peticiones abiertas, catálogo de skills, anotaciones y orden. `PreToolUse`: bloquea archivos fuera de la arquitectura y pide confirmación para mover. `Stop`: recuerda el cierre |
 | Orden | `ordenar.py` propone a dónde va cada archivo según su contenido y uso; mueve solo lo que la persona confirme |
+| Atajos | Un skill por tarea habitual (`.claude/skills/<tarea>/`), invocable como `/<tarea>`; su «Cómo se hace» se completa la primera vez que se usa |
+| Lista de arranque | `arranque.py`: lo que falta para tener el espacio al 100 %; el aviso de inicio la muestra mientras esté incompleta |
+| Tiempo ahorrado | `tiempo.py` mide cada tarea con Claude y, al cerrar, se le pregunta a la persona cuánto le tomaría a mano; queda en la bitácora |
+| Resumen semanal | `resumen.py`: tareas, tiempo ahorrado, lo aprendido, correcciones, pendientes y qué se repite; el aviso de inicio lo ofrece cada semana |
 
 ## Qué se documenta
 
@@ -201,13 +205,17 @@ bitácora ni en la memoria: esas son solo del trabajo de la persona.
 ## Paso 8 — Contarle a la persona
 
 Dos o tres frases, sin términos técnicos: que su espacio quedó listo, dónde
-va a encontrar su trabajo, y que nunca pegue claves en el chat. Para ti: los
+va a encontrar su trabajo, que cada tarea habitual ya tiene su atajo
+(`/<tarea>`) y que nunca pegue claves en el chat. Luego muéstrale su lista de
+arranque (`python <skill>/scripts/arranque.py`) en sencillo: cuánto lleva y
+qué le falta para quedar al 100 %. Para ti: los
 hooks se activan desde la próxima sesión de Claude Code.
 
 ## Paso 9 — Primeros pasos de verdad
 
-Ofrece, en una sola `AskUserQuestion` con selección múltiple, lo que más
-valor le da al arrancar (todo opcional):
+Lo que sigue es completar la lista de arranque. Ofrece, en una sola
+`AskUserQuestion` con selección múltiple, lo que le falte (todo opcional), y
+pon primero **hacer su primera tarea real**:
 
 - **Instalar los programas que faltan** (solo si `programas.py` marca
   alguno): uno por uno con `programas.py --instalar <nombre>` para los de
@@ -225,7 +233,9 @@ valor le da al arrancar (todo opcional):
 - **Revisar qué skills instalados cubren sus tareas habituales**: cruza cada
   tarea con `grafo.py --plan "<tarea>"` y dile cuáles ya tienen un skill y
   cuáles no. Las que no, quedan anotadas como candidatas.
-- **Hacer su primera tarea real**, aplicando ya el protocolo del espacio.
+- **Hacer su primera tarea real** con su atajo, aplicando ya el protocolo
+  del espacio: reloj en marcha al empezar y, al cerrar, la pregunta de cuánto
+  le habría tomado a mano. Que vea el tiempo ahorrado desde el primer día.
 
 ## Reorganizar
 
@@ -297,6 +307,9 @@ revisa la copia y vuelve a aplicar su cambio.
 | `montar.py --respuestas r.json [--dry-run]` | Montar o ampliar (`--actualizar`, `--json`, `--raiz`) |
 | `verificar.py` | Estado: OK, FALTA, DIVERGE, AVISO (`--json`) |
 | `programas.py` | Programas para trabajar: estado, `--comando <nombre>` y `--instalar <nombre>` (solo con el sí de la persona) |
+| `arranque.py` | Lista de arranque: avance y cómo completar cada pendiente (`--breve`, `--json`) |
+| `tiempo.py` | Reloj de una tarea del rol: `--empezar <proceso>`, `--terminar`, `--estimacion <proceso>` |
+| `resumen.py` | Resumen semanal (`--dias`, `--hasta`, `--proyecto`, `--guardar`, `--json`) |
 | `inicio.py` | Hook SessionStart: última sesión, peticiones abiertas, skills y anotaciones |
 | `cierre_check.py` | Hook Stop: recuerda el protocolo de cierre una vez por sesión |
 | `orden_check.py` | Hook PreToolUse: niega escrituras fuera de la arquitectura y pide confirmación para mover |
@@ -312,4 +325,4 @@ revisa la copia y vuelve a aplicar su cambio.
 | `references/entrevista.md` | Pasos 3 y 6: preguntas, inferencias y esquema del JSON |
 | `references/investigar-rol.md` | Paso 4: qué investigar del rol, cómo convertirlo en lineamientos y el bloque `investigacion_rol` |
 | `references/arquitecturas.md` | Paso 5: cómo decidir y los seis tipos |
-| `assets/plantilla/` | Lo que renderiza `montar.py` (CLAUDE.md, convenciones, bitácoras, hooks). No se edita por proyecto |
+| `assets/plantilla/` | Lo que renderiza `montar.py` (CLAUDE.md, convenciones, bitácoras, hooks, atajos). No se edita por proyecto |

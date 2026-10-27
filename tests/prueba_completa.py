@@ -151,6 +151,27 @@ cfg = json.loads((A / "espacio.json").read_text(encoding="utf-8"))
 if sorted(cfg["arquitectura"]["preexistentes"]) != ["README.md", "src"]:
     fallos.append(f"preexistentes inesperados: {cfg['arquitectura']['preexistentes']}")
 
+# atajos y lista de arranque
+atajo = A / ".claude/skills/actualizar-el-tablero-semanal/SKILL.md"
+if not atajo.is_file() or "name: actualizar-el-tablero-semanal" not in atajo.read_text(encoding="utf-8"):
+    fallos.append("montar no creó el atajo de la tarea habitual")
+elif "tiempo.py --empezar actualizar-el-tablero-semanal" not in atajo.read_text(encoding="utf-8"):
+    fallos.append("el atajo no pone en marcha el reloj de la tarea")
+r = run(A, ["arranque.py", "--json"], esperado=1)
+pasos_ok = {x["id"]: x["ok"] for x in json.loads(r.stdout)["pasos"]}
+if not pasos_ok.get("atajos") or pasos_ok.get("primera") or pasos_ok.get("programas"):
+    fallos.append(f"arranque no refleja el estado: {pasos_ok}")
+if "Arranque:" not in run(A, ["inicio.py"], stdin="{}").stdout:
+    fallos.append("el aviso de inicio no muestra la lista de arranque")
+
+# reloj de la tarea
+run(A, ["tiempo.py", "--empezar", "tablero-semanal"], esperado=0)
+r = run(A, ["tiempo.py", "--terminar", "--json"], esperado=0)
+medida = json.loads(r.stdout)
+if medida.get("desde") != "tarea" or not medida.get("minutos"):
+    fallos.append(f"tiempo.py no midió la tarea: {medida}")
+run(A, ["tiempo.py", "--estimacion", "tablero-semanal"], esperado=1)
+
 # memoria + bitácora + grafo
 (A / "memoria/otif-se-calcula-por-pedido.md").write_text(
     "---\nid: otif-se-calcula-por-pedido\ntitulo: El OTIF se calcula por pedido, no por línea\ntipo: decision\n"
@@ -163,11 +184,42 @@ if r.stdout.strip() != "P-001":
 b = A / "bitacora-peticiones.md"
 t = b.read_text(encoding="utf-8").replace("## Entradas\n", "## Entradas\n\n### P-001 — Tablero semanal de OTIF\n"
     "<!-- fecha: 27-oct-2026 | skills: | memoria: otif-se-calcula-por-pedido | archivos: reportes/x.md | "
-    "proceso: tablero-semanal | estado: parcial -->\n\n**Petición:** actualizar tablero OTIF.\n\n"
+    "proceso: tablero-semanal | estado: parcial | manual: 120 | claude: 25 -->\n\n**Petición:** actualizar tablero OTIF.\n\n"
     "**Cómo se resolvió:** con el exporte.\n\n**Conocimiento adyacente:** el ERP corta a medianoche UTC.\n\n")
 b.write_text(t, encoding="utf-8")
 run(A, ["bitacora.py", "--tabla"], esperado=0)
 run(A, ["bitacora.py"], esperado=0)
+# tiempo ahorrado: un minuto que no es número se rechaza
+segunda = ("### P-002 — Tablero de la semana 2\n<!-- fecha: 26-oct-2026 | skills: | memoria: | archivos: | "
+           "proceso: tablero-semanal | estado: resuelta | manual: dos | claude: 10 -->\n\n**Petición:** otra vez."
+           "\n\n**Cómo se resolvió:** igual.\n\n")
+t = b.read_text(encoding="utf-8").replace("## Procesos candidatos", segunda + "## Procesos candidatos", 1)
+b.write_text(t, encoding="utf-8")
+run(A, ["bitacora.py"], esperado=1)
+b.write_text(t.replace("manual: dos", "manual: 60"), encoding="utf-8")
+run(A, ["bitacora.py"], esperado=0)
+if "1 h" not in run(A, ["tiempo.py", "--estimacion", "tablero-semanal"], esperado=0).stdout:
+    fallos.append("tiempo.py no propone la última estimación manual")
+# resumen semanal
+r = run(A, ["resumen.py", "--json", "--hasta", "27-oct-2026"], esperado=0)
+res = json.loads(r.stdout)
+if (res["tiempo"]["manual"], res["tiempo"]["claude"], res["tiempo"]["ahorro"]) != (180, 35, 145):
+    fallos.append(f"resumen calculó mal el tiempo: {res['tiempo']}")
+if len(res["tareas"]) != 2 or "tablero-semanal" not in res["candidatos_atajo"]:
+    fallos.append(f"resumen: tareas o candidatos inesperados: {len(res['tareas'])}, {res['candidatos_atajo']}")
+if not any(n["id"] == "otif-se-calcula-por-pedido" for n in res["aprendido"]):
+    fallos.append("resumen no muestra lo que aprendió Claude")
+if len(json.loads(run(A, ["resumen.py", "--json", "--hasta", "27-oct-2026", "--dias", "1"]).stdout)["tareas"]) != 1:
+    fallos.append("resumen no filtra por periodo")
+r = run(A, ["resumen.py", "--hasta", "27-oct-2026", "--guardar"], esperado=0)
+if "Te ahorraste" in r.stdout or "2 h 25 min" not in r.stdout:
+    fallos.append("el resumen no muestra el ahorro en horas y minutos")
+if not (A / "reportes/27-oct-2026/resumenes/resumen-27-oct-2026.md").is_file():
+    fallos.append("resumen --guardar no dejó el entregable")
+if "resumen semanal" in run(A, ["inicio.py"], stdin="{}").stdout:
+    fallos.append("el aviso de inicio ofrece el resumen aunque se acaba de ver")
+if not {x["id"]: x["ok"] for x in json.loads(run(A, ["arranque.py", "--json"]).stdout)["pasos"]}["primera"]:
+    fallos.append("la primera tarea no cuenta en la lista de arranque")
 run(A, ["grafo.py", "--actualizar"], esperado=0)
 r = run(A, ["grafo.py", "--plan", "actualizar el tablero de OTIF de esta semana"], esperado=0)
 if "otif-se-calcula-por-pedido" not in r.stdout or "Tablero semanal de OTIF" not in r.stdout:

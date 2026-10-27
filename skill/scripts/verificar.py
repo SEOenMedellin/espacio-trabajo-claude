@@ -98,6 +98,9 @@ def revisar(raiz: Path, cfg: dict) -> list[tuple[str, str, str]]:
         item("DIVERGE", ".claude/settings.json", "JSON inválido")
     item("OK" if (raiz / comun.ESTADO / "grafo.json").is_file() else "AVISO", f"{comun.ESTADO}/grafo.json",
          "" if (raiz / comun.ESTADO / "grafo.json").is_file() else "corre grafo.py --actualizar")
+    for at in comun.atajos(cfg):
+        item("OK" if (raiz / at["ruta"]).is_file() else "AVISO", f"atajo /{at['slug']}",
+             "" if (raiz / at["ruta"]).is_file() else "no existe: montar.py lo crea")
     if not cfg.get("investigacion_rol"):
         item("AVISO", "investigación del rol", "no se ha hecho: amplía el espacio con primeros-pasos")
     for p in programas.lista(cfg):

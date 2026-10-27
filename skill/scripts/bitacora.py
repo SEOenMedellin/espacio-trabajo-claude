@@ -4,7 +4,10 @@
 Formato exacto de una entrada (lo parsean este script y grafo.py):
 
     ### P-NNN — <título>
-    <!-- fecha: DD-mmm-YYYY | skills: a, b | memoria: id1 | archivos: ruta1 | proceso: <slug> | estado: resuelta|parcial|abierta -->
+    <!-- fecha: DD-mmm-YYYY | skills: a, b | memoria: id1 | archivos: ruta1 | proceso: <slug> | estado: resuelta|parcial|abierta | manual: 120 | claude: 25 -->
+
+`manual` y `claude` son opcionales: minutos que la persona estima que le
+tomaría la tarea a mano y minutos que tomó con Claude. De ahí sale el ahorro.
 
     **Petición:** ...
     **Cómo se resolvió:** ...
@@ -40,6 +43,7 @@ META = re.compile(r"^<!--\s*(.*?)\s*-->\s*$")
 CAMPOS = ("fecha", "skills", "memoria", "archivos", "proceso", "estado")
 LISTAS = ("skills", "memoria", "archivos")
 ESTADOS = ("resuelta", "parcial", "abierta")
+TIEMPOS = ("manual", "claude")
 INICIO = "<!-- procesos-candidatos:inicio -->"
 FIN = "<!-- procesos-candidatos:fin -->"
 SLUG = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -77,6 +81,15 @@ def parsear(texto: str) -> tuple[list[dict], list[str]]:
             errores.append(f"{e['id']}: estado {e['estado']!r} no es {'|'.join(ESTADOS)}")
         if e.get("proceso") and not SLUG.match(e["proceso"]):
             errores.append(f"{e['id']}: proceso {e['proceso']!r} no es un slug kebab-case")
+        for k in TIEMPOS:
+            v = str(e.get(k, "")).strip()
+            if not v:
+                e.pop(k, None)
+            elif v.isdigit() and int(v) > 0:
+                e[k] = int(v)
+            else:
+                errores.append(f"{e['id']}: {k} debe ser un número entero de minutos, no {v!r}")
+                e.pop(k, None)
         cuerpo = []
         for l2 in lineas[j + 1:]:
             if l2.startswith("### ") or l2.startswith("## ") or l2.strip() == INICIO:

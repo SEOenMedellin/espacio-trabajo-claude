@@ -43,8 +43,20 @@ persona**: se le muestra qué se mueve, de dónde y a dónde, y se pregunta ante
 `ordenar.py` (plan) y `ordenar.py --aplicar --solo <rutas aprobadas>`. Detalle
 en `{{DOCS}}/carpetas.md`.
 
+## Tus atajos
+
+Cada tarea habitual tiene un atajo en `.claude/skills/<tarea>/`, que la
+persona usa escribiendo `/<tarea>` o pidiéndola con sus palabras. Si la
+petición coincide con un atajo, se invoca con la herramienta `Skill` y se
+siguen sus pasos: así la tarea sale igual cada vez. La primera vez que se usa
+un atajo, al cerrar se completa su sección «Cómo se hace» (con el sí de la
+persona).
+
 ## Antes de cada tarea — verificar antes de inferir
 
+0. Si es una tarea del trabajo de la persona (no configurar el espacio ni
+   crear skills), poner en marcha el reloj:
+   `{{PY}} {{SKILL_REL}}/scripts/tiempo.py --empezar <proceso>{{PROYECTO_FLAG}}`.
 1. `{{PY}} {{SKILL_REL}}/scripts/grafo.py --plan "<la petición>"{{PROYECTO_FLAG}}`:
    dice qué skills invocar, qué memoria leer, qué contexto aplica y qué
    peticiones parecidas ya se resolvieron.
@@ -71,20 +83,33 @@ contexto se consultaron.
 
 ## Al terminar cada tarea — protocolo de cierre
 
-Solo para tareas del trabajo de la persona (ver «Qué se documenta y qué no»).
-Decirle a la persona en una frase qué se hizo y qué se va a recordar, y
-preguntar con una sola `AskUserQuestion`: «¿Lo guardo así para la próxima
-vez?» (Sí, guárdalo · Corrige algo · No hace falta). Después, en silencio:
+Solo para tareas del trabajo de la persona (ver «Qué se documenta y qué no»):
+un informe, una investigación, un análisis; nunca configurar el espacio, crear
+skills ni ajustar funciones. Decirle en una frase qué se hizo y qué se va a
+recordar, y hacer **una sola** `AskUserQuestion` con dos preguntas:
+
+- «¿Lo guardo así para la próxima vez?» (Sí, guárdalo · Corrige algo · No hace falta).
+- «¿Cuánto te habría tomado hacerlo a mano, en promedio?». Si ya lo estimó
+  para este tipo de tarea (`tiempo.py --estimacion <proceso>`), la primera
+  opción es ese valor («Lo mismo que la vez pasada: 2 h»); si no, opciones
+  como 30 min · 1 h · 2 h · medio día. Con «Otro» dice el tiempo exacto.
+
+Con la respuesta, `tiempo.py --terminar{{PROYECTO_FLAG}}` da los minutos con
+Claude. Dile en una frase el resultado: «Con Claude: 25 min; a mano: 2 h. Te
+ahorraste 1 h 35 min.» Después, en silencio:
 
 1. Entrada en `{{BITACORA}}` con el formato exacto (`{{DOCS}}/bitacoras.md`),
-   incluyendo «Patrones y atajos» y «Conocimiento adyacente» cuando los haya.
-   Las correcciones de la persona siempre van en la entrada.
+   con `manual:` y `claude:` en minutos, y «Patrones y atajos» y
+   «Conocimiento adyacente» cuando los haya. Las correcciones de la persona
+   siempre van en la entrada.
 2. Nodo de memoria si se aprendió algo: global (`{{MEMORIA_GLOBAL}}`) si sirve a
    cualquier proyecto, del proyecto (`{{MEMORIA_PROYECTO}}`) si es específico
    (`{{DOCS}}/memoria.md`).
 3. `bitacora.py --tabla{{PROYECTO_FLAG}}`, `memoria.py --rebuild` y `grafo.py --actualizar`.
-4. Si la tabla «Procesos candidatos» marca un proceso repetido o corregido,
-   proponerle a la persona convertirlo en un skill (`{{DOCS}}/crear-skills.md`).
+4. Si la tarea usó un atajo por primera vez, completar su sección «Cómo se
+   hace» con lo que funcionó (con el sí de la persona).
+5. Si la tabla «Procesos candidatos» marca un proceso repetido o corregido
+   que aún no tiene atajo, proponerle convertirlo en uno (`{{DOCS}}/crear-skills.md`).
 
 Un hook `Stop` lo recuerda una vez por sesión si hubo cambios sin registrar.
 
@@ -96,6 +121,16 @@ anotaciones de memoria. En la primera respuesta, recuérdale a la persona en
 dos o tres frases dónde quedó y, si hay peticiones abiertas, pregúntale si las
 retoma. Ese catálogo es el punto de partida para saber con qué skills se
 resuelve cada tarea.
+
+- **Lista de arranque.** Mientras el espacio no esté al 100 %, el aviso dice
+  cuánto falta («Arranque: 4 de 7 listo»). Muéstraselo en una línea; si dice
+  «sigamos», completa lo siguiente con `arranque.py` (instalar o mover
+  siempre se confirma).
+- **Resumen semanal.** Si pasó una semana desde el último, ofrécele su
+  resumen (`resumen.py`): tareas hechas, tiempo ahorrado, lo que aprendió
+  Claude, lo que corrigió y lo que se repite. Si lo quiere guardar o enviar a
+  alguien, `resumen.py --guardar{{PROYECTO_FLAG}}`. También cuando la persona
+  pregunte por su semana, por lo que ha hecho o por cuánto tiempo ha ahorrado.
 
 ## Credenciales
 
@@ -137,5 +172,9 @@ Todas desde la raíz:
 | `{{PY}} {{SKILL_REL}}/scripts/bitacora.py --siguiente` / `--tabla` | Próxima entrada / procesos candidatos |
 | `{{PY}} {{SKILL_REL}}/scripts/memoria.py --rebuild` | Validar la memoria y regenerar sus índices |
 | `{{PY}} {{SKILL_REL}}/scripts/verificar.py` | Estado del espacio (reparar con `montar.py`) |
+| `{{PY}} {{SKILL_REL}}/scripts/arranque.py` | Lo que falta para tener el espacio al 100 % |
+| `{{PY}} {{SKILL_REL}}/scripts/tiempo.py --empezar <proceso>` / `--terminar` / `--estimacion <proceso>` | Tiempo de cada tarea con Claude |
+| `{{PY}} {{SKILL_REL}}/scripts/resumen.py [--guardar]` | Resumen semanal: tareas, tiempo ahorrado, aprendizajes |
+| `{{PY}} {{SKILL_REL}}/scripts/programas.py` | Programas para trabajar y cómo instalarlos |
 
 Convenciones completas: `{{DOCS}}/`.

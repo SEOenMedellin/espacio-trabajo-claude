@@ -37,6 +37,7 @@ eso.**
 
 | Sin primeros-pasos | Con primeros-pasos |
 |---|---|
+| No sabes cuánto tiempo te ahorra la IA | Cada tarea te dice cuánto ahorraste, y cada semana lo suma |
 | Cada conversación empieza de cero | Claude arranca sabiendo tu cargo, tu objetivo y cómo trabajas |
 | Explicas lo mismo una y otra vez | Lo dices una vez en la entrevista y queda escrito |
 | Archivos regados por todas partes | Cada cosa tiene su lugar, y Claude lo respeta |
@@ -77,6 +78,49 @@ De ahí salen **los lineamientos de tu espacio**: reglas con su porqué que
 deciden tus carpetas y que Claude respeta en cada tarea. La investigación
 queda guardada con sus fuentes, para que puedas revisarla cuando quieras.
 
+## Tus tareas, a un comando de distancia
+
+Cada tarea que haces seguido se convierte en un **atajo con nombre propio**:
+`/informe-mensual`, `/acta-de-reunion`, `/revision-de-contrato`. Lo escribes y
+Claude sigue siempre los mismos pasos, con el formato de tu oficio y las
+correcciones que ya le hiciste. La primera vez aprende cómo la haces; desde la
+segunda, sale igual sin volver a explicar nada.
+
+## Mide cuánto tiempo te ahorras
+
+Al terminar cada tarea de tu trabajo (un informe, una investigación, un
+análisis), Claude te hace una sola pregunta: **¿cuánto te habría tomado
+hacerlo a mano?** Lo compara con lo que tomó con él y te lo dice en una
+frase:
+
+> Con Claude: 25 min; a mano: 2 h. Te ahorraste 1 h 35 min.
+
+La segunda vez que haces el mismo tipo de tarea ya no tienes que pensarlo: te
+propone tu estimación anterior. Configurar el espacio o crear atajos nunca
+cuenta como tarea; solo se mide tu trabajo de verdad.
+
+## Tu semana, en un resumen
+
+Cada semana Claude te ofrece un resumen listo para ti o para tu jefe:
+
+- **Qué hiciste**, tarea por tarea.
+- **Cuánto tiempo ahorraste**, en total y por tipo de tarea, y lo acumulado
+  desde que empezaste.
+- **Qué aprendió Claude** y **qué le corregiste**.
+- **Qué quedó pendiente.**
+- **Qué se repite** lo suficiente para volverse un atajo.
+
+Si lo quieres guardar o compartir, queda como un documento más de tu trabajo.
+
+## Al 100 % desde el primer día
+
+Después de instalar, una **lista de arranque** te muestra cuánto llevas y qué
+falta: investigar tu rol, instalar un programa, guardar un acceso, traer los
+documentos de tu proyecto, hacer tu primera tarea. Cada vez que abres Claude
+ves tu avance («Arranque: 5 de 7 listo»); escribe **«sigamos»** y te ayuda
+con lo siguiente. La primera tarea la hacen juntos, para que veas el tiempo
+que ahorras desde el primer día.
+
 ## Un espacio que aprende
 
 Esto es lo que lo hace distinto: **mejora cuanto más lo usas.**
@@ -103,6 +147,9 @@ Esto es lo que lo hace distinto: **mejora cuanto más lo usas.**
 | Escribe… | Y pasa esto |
 |---|---|
 | «empezar» | Entrevista y montaje de tu espacio |
+| `/<tu-tarea>` | Tu tarea habitual, siempre con los mismos pasos |
+| «sigamos» | Completa lo siguiente de tu lista de arranque |
+| «¿cómo me fue esta semana?» | Tu resumen: tareas, tiempo ahorrado y lo aprendido |
 | «tengo un proyecto nuevo» o «ahora también hago…» | Tu espacio se amplía sin perder nada |
 | «ordena mis carpetas» | Te propone dónde va cada archivo; solo se mueve lo que apruebes |
 | «repara mi espacio» | Repone lo que falte si algo se dañó |

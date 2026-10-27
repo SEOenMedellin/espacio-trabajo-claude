@@ -25,7 +25,7 @@ SKILL = AQUI.parent
 CONFIG = "espacio.json"
 ESTADO = ".espacio"                  # derivados: grafo, sesiones, respaldos
 DOCS = "docs/espacio-de-trabajo"     # convenciones copiadas al repositorio
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 MARCA_INICIO = "<!-- primeros-pasos:inicio -->"
 MARCA_FIN = "<!-- primeros-pasos:fin -->"
 MESES = ("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")
@@ -121,6 +121,46 @@ def base_dir(ruta: str) -> str:
 def hoy(fecha: dt.date | None = None) -> str:
     d = fecha or dt.date.today()
     return f"{d.day:02d}-{MESES[d.month - 1]}-{d.year}"
+
+
+def a_fecha(texto: str) -> dt.date | None:
+    """'27-oct-2026' -> date, o None si no tiene ese formato."""
+    m = re.match(r"^(\d{2})-([a-z]{3})-(\d{4})$", (texto or "").strip())
+    if not m or m.group(2) not in MESES:
+        return None
+    try:
+        return dt.date(int(m.group(3)), MESES.index(m.group(2)) + 1, int(m.group(1)))
+    except ValueError:
+        return None
+
+
+def duracion(minutos: int | float) -> str:
+    """95 -> '1 h 35 min'."""
+    m = int(round(minutos))
+    h, r = divmod(abs(m), 60)
+    signo = "-" if m < 0 else ""
+    if not h:
+        return f"{signo}{r} min"
+    return f"{signo}{h} h" + (f" {r} min" if r else "")
+
+
+def atajos(cfg: dict) -> list[dict]:
+    """Un atajo (skill invocable como /<slug>) por cada tarea habitual del perfil."""
+    res, vistos = [], set()
+    for t in cfg.get("perfil", {}).get("tareas", []):
+        t = t if isinstance(t, dict) else {"tarea": str(t)}
+        nombre = str(t.get("tarea", "")).strip()
+        if not nombre:
+            continue
+        s = slug(nombre, largo=40)
+        if s == "primeros-pasos":
+            s = "tarea-primeros-pasos"
+        if s in vistos:
+            continue
+        vistos.add(s)
+        res.append({"slug": s, "tarea": nombre, "entrega": t.get("entrega") or "",
+                    "frecuencia": t.get("frecuencia") or "", "ruta": f".claude/skills/{s}/SKILL.md"})
+    return res
 
 
 def sin_acentos(texto: str) -> str:

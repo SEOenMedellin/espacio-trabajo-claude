@@ -494,6 +494,11 @@ def montar(raiz: Path, cfg: dict, seco: bool, forzar: bool, cfg_cambio: bool) ->
                                raiz, rep, seco)
     if archivo_rol(cfg):
         crear_si_falta(raiz / archivo_rol(cfg), documento_rol(cfg), raiz, rep, seco)
+    plantilla_atajo = (PLANTILLA / "atajo.md").read_text(encoding="utf-8")
+    for at in comun.atajos(cfg):
+        crear_si_falta(raiz / at["ruta"], render(plantilla_atajo, dict(
+            v, SLUG=at["slug"], TAREA=at["tarea"], ENTREGA=at["entrega"] or "la que pida la persona",
+            FRECUENCIA=at["frecuencia"] or "cuando se necesite")), raiz, rep, seco)
     bloque_claude(raiz, v, rep, seco, forzar)
     convenciones(raiz, v, rep, seco, forzar)
     credenciales(raiz, cfg, rep, seco)

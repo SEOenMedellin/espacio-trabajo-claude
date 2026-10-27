@@ -33,6 +33,8 @@ import grafo  # noqa: E402
 import memoria  # noqa: E402
 import ordenar  # noqa: E402
 import verificar  # noqa: E402
+import arranque  # noqa: E402
+import resumen  # noqa: E402
 
 MAX_SKILLS = 60
 MAX_NODOS = 40
@@ -121,13 +123,17 @@ def main() -> int:
     if malos:
         print("Faltan piezas del espacio (" + "; ".join(f"{e} {q}" for e, q, _ in malos[:4])
               + "). Antes de la primera tarea, repáralas con primeros-pasos (montar.py).")
-    faltan = verificar.programas_faltantes(cfg)
-    if faltan:
-        print("Programas para trabajar que no están instalados: " + ", ".join(faltan) + ". Antes de una tarea "
-              "que los necesite, ofrécele a la persona instalarlos (programas.py --instalar <nombre>) y espera su sí.")
-    if not cfg.get("investigacion_rol"):
-        print("El rol de la persona todavía no se ha investigado: ofrécele ampliar el espacio con primeros-pasos "
-              "para sumar los lineamientos del rol.")
+    ps = arranque.pasos(raiz, cfg)
+    pendientes = [p for p in ps if not p["ok"]]
+    if pendientes:
+        print(f"Arranque: {len(ps) - len(pendientes)} de {len(ps)} listo. Falta: "
+              + "; ".join(p["que"] for p in pendientes) + ". Muéstraselo a la persona en una línea y, si dice "
+              "«sigamos», completa el primero (arranque.py dice cómo; instalar o mover siempre se confirma).")
+    ultimo = resumen.ultimo_resumen(raiz)
+    hay_trabajo = any(p["id"] == "primera" and p["ok"] for p in ps)
+    if hay_trabajo and (ultimo is None or time.time() - ultimo > 7 * 86400):
+        print("Pasó una semana desde el último resumen: ofrécele a la persona su resumen semanal "
+              "(resumen.py: qué hizo, tiempo ahorrado, qué aprendió Claude, qué se repite).")
     res = ordenar.escanear(raiz, cfg)
     n, d = len(res["hallazgos"]), len(res["duplicados"])
     if n or d:

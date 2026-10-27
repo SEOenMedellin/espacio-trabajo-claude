@@ -26,7 +26,7 @@ Las entradas van bajo `## Entradas`, antes de `## Procesos candidatos`:
 
 ```markdown
 ### P-NNN — <título corto>
-<!-- fecha: DD-mmm-YYYY | skills: a, b | memoria: id1, id2 | archivos: ruta1, ruta2 | proceso: <slug> | estado: resuelta -->
+<!-- fecha: DD-mmm-YYYY | skills: a, b | memoria: id1, id2 | archivos: ruta1, ruta2 | proceso: <slug> | estado: resuelta | manual: 120 | claude: 25 -->
 
 **Petición:** qué pidió la persona, con sus palabras.
 
@@ -48,13 +48,24 @@ mencionó pero que importan para próximas tareas.                     (opcional
   `revisar-contrato`), no de esta tarea. Antes de inventar uno, reutiliza un
   slug de la tabla si la tarea es del mismo tipo: así se cuentan las repeticiones.
 - `estado`: `resuelta`, `parcial` o `abierta`.
+- `manual` y `claude`: minutos enteros. `manual` es lo que la persona estima
+  que le tomaría a mano, en promedio; `claude`, lo que tomó con Claude
+  (`tiempo.py --terminar`). Si la persona no quiso responder, se dejan fuera.
+  De aquí salen el tiempo ahorrado y el resumen semanal.
+- Si la tarea se hizo con un atajo, `proceso` es el nombre del atajo: así se
+  cuentan juntas todas las veces que se hizo.
 
 ### Protocolo de cierre
 
 Al terminar **cada tarea del trabajo de la persona** (no cada mensaje, y nunca
-por tareas de configuración del espacio): una frase a la persona con qué se
-hizo y qué se va a recordar, y una sola `AskUserQuestion` «¿Lo guardo así para
-la próxima vez?» (Sí, guárdalo · Corrige algo · No hace falta).
+por tareas de configuración del espacio ni por crear skills): una frase a la
+persona con qué se hizo y qué se va a recordar, y una sola `AskUserQuestion`
+con dos preguntas: «¿Lo guardo así para la próxima vez?» (Sí, guárdalo ·
+Corrige algo · No hace falta) y «¿Cuánto te habría tomado hacerlo a mano, en
+promedio?». Para la segunda, si ya hay una estimación de ese tipo de tarea
+(`tiempo.py --estimacion <proceso>`), se le propone primero; la persona puede
+cambiarla. Luego `tiempo.py --terminar` da el tiempo con Claude y se le dice
+en una frase cuánto se ahorró.
 
 - *Corrige algo*: se ajusta y se guarda. Las correcciones son la señal más
   valiosa: siempre van en la entrada y casi siempre se vuelven un nodo
