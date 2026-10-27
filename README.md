@@ -1,6 +1,6 @@
 # Primer Paso
 
-## Claude empieza cada conversación sabiendo quién eres, qué exige tu oficio y dónde va cada cosa
+![Primer Paso, skill para Claude Code: Claude empieza cada conversación sabiendo quién eres, qué exige tu oficio y dónde va cada cosa](docs/opengraph.svg)
 
 Instálalo en tu carpeta de trabajo, escribe «empezar» y en unos minutos tienes
 un espacio hecho a tu medida. Desde ese día, cada tarea queda registrada,
