@@ -1,17 +1,10 @@
 # Instalación paso a paso
 
 Sigue los pasos en orden. Cada comando se copia completo, se pega en la
-terminal y se ejecuta con Enter. Toma unos 15 minutos la primera vez.
+terminal y se ejecuta con Enter. Toma unos minutos.
 
-## Antes de empezar
-
-Necesitas tres cosas:
-
-1. Un computador con Windows 10 o más reciente, o una Mac con macOS 13 o más
-   reciente.
-2. Conexión a internet.
-3. Una cuenta de Claude de pago: Pro, Max, Team o Enterprise. El plan gratuito
-   no incluye Claude Code.
+Antes de empezar necesitas tener [Claude Code](https://claude.com/claude-code)
+instalado.
 
 ## Paso 1. Abre la terminal
 
@@ -23,41 +16,7 @@ ejemplo `PS C:\Users\TuNombre>`.
 
 **En Mac:** presiona Cmd + Espacio, escribe `Terminal` y presiona Enter.
 
-## Paso 2. Instala Claude Code
-
-Solo la primera vez. Si ya lo tienes, salta al paso 3.
-
-**En Windows**, pega estos dos comandos, uno por uno:
-
-```powershell
-irm https://claude.ai/install.ps1 | iex
-```
-
-```powershell
-winget install -e --id Git.Git
-```
-
-El segundo instala Git, que tu espacio de trabajo necesita en Windows. Si
-Windows te pide permiso, acepta.
-
-**En Mac:**
-
-```bash
-curl -fsSL https://claude.ai/install.sh | bash
-```
-
-La instalación no muestra avances mientras descarga; espera a que termine.
-Después **cierra la terminal y abre una nueva** (paso 1) y comprueba que
-quedó bien:
-
-```
-claude --version
-```
-
-Si aparece un número de versión, sigue. Si dice que `claude` no se reconoce,
-mira la sección «Si algo falla» al final.
-
-## Paso 3. Crea tu carpeta de trabajo y entra en ella
+## Paso 2. Crea tu carpeta de trabajo y entra en ella
 
 Cambia `mi-proyecto` por el nombre de tu proyecto, sin espacios ni tildes
 (por ejemplo `informes-ventas`).
@@ -77,7 +36,7 @@ mkdir -p ~/trabajo/mi-proyecto && cd ~/trabajo/mi-proyecto
 Si ya tienes una carpeta con tus archivos, usa esa: escribe `cd` seguido de
 su ruta. Tus archivos se respetan.
 
-## Paso 4. Instala primeros-pasos
+## Paso 3. Instala el skill primeros-pasos
 
 En la misma terminal, dentro de tu carpeta:
 
@@ -97,7 +56,7 @@ El instalador revisa si tienes Git, Python, Node.js y Playwright. Si falta
 alguno, te pregunta «¿Instalo … ahora?»: responde `S` y Enter. Al final verás
 «Listo: primeros-pasos quedó instalado».
 
-## Paso 5. Abre Claude Code
+## Paso 4. Abre Claude y escribe «empezar»
 
 En la misma terminal:
 
@@ -105,20 +64,16 @@ En la misma terminal:
 claude
 ```
 
-La primera vez se abre el navegador para que inicies sesión con tu cuenta de
-Claude. Después, Claude Code te pregunta si confías en la carpeta: elige la
-opción que dice que sí.
-
-## Paso 6. Escribe «empezar»
-
-Escribe `empezar` y presiona Enter. Claude te hace unas preguntas: tu cargo,
-tu proyecto, qué quieres lograr, tus tareas habituales y las herramientas que
-usas. Responde con tus palabras; no hace falta que sea largo.
+Si Claude Code te pregunta si confías en la carpeta, elige la opción que dice
+que sí. Luego escribe `empezar` y presiona Enter. Claude te hace unas
+preguntas: tu cargo, tu proyecto, qué quieres lograr, tus tareas habituales y
+las herramientas que usas. Responde con tus palabras; no hace falta que sea
+largo.
 
 Mientras tanto investiga tu rol y al final te muestra una propuesta. Léela y
 responde «Sí, prepáralo» o pide los cambios que quieras.
 
-## Paso 7. Termina tu arranque
+## Paso 5. Termina tu arranque
 
 Claude te dice cuánto te falta para quedar al 100 %. Escribe `sigamos` y te
 acompaña en lo siguiente. La primera tarea real la hacen juntos y, al
@@ -143,15 +98,18 @@ cd ~/trabajo/mi-proyecto && claude
 Claude te recuerda dónde quedaste. Para una tarea habitual escribe `/` y el
 nombre de su atajo.
 
+## Para actualizarlo
+
+Repite el paso 3 dentro de tu carpeta. Se actualiza el skill y tu trabajo
+queda intacto.
+
 ## Si algo falla
 
 | Lo que ves | Qué hacer |
 |---|---|
-| `claude` no se reconoce o no se encuentra | Cierra la terminal, abre una nueva y vuelve a probar |
 | `'irm' is not recognized` | Estás en CMD, no en PowerShell. Vuelve al paso 1 y abre PowerShell |
 | `The token '&&' is not a valid statement separator` | Estás en PowerShell usando el comando de Mac. Usa el de Windows |
-| El instalador dice que estás en tu carpeta personal | Te faltó el paso 3: entra a tu carpeta de trabajo y repite el paso 4 |
-| Claude dice que tu plan no incluye Claude Code | Necesitas un plan Pro, Max, Team o Enterprise |
+| El instalador dice que estás en tu carpeta personal | Te faltó el paso 2: entra a tu carpeta de trabajo y repite el paso 3 |
 | Claude no responde a «empezar» | Escribe `/primeros-pasos` o cierra y vuelve a abrir Claude en tu carpeta |
 | Falta un programa después de instalarlo | Cierra y vuelve a abrir la terminal |
 

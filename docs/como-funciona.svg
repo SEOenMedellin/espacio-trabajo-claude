@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="830" viewBox="0 0 1200 830" role="img" aria-labelledby="t d">
   <title id="t">Cómo funciona primeros-pasos</title>
-  <desc id="d">Instalas Claude Code y el skill con un comando cada uno; el instalador revisa Git, Python, Node.js y Playwright. Escribes «empezar» y respondes una entrevista corta. Claude investiga tu rol (responsabilidades, obligaciones, tareas comunes y programas) y de ahí saca los lineamientos de tu espacio. Una lista de arranque te lleva al 100 %. Queda listo: carpetas a tu medida, lineamientos del rol, un atajo por cada tarea, tiempo ahorrado medido en cada tarea, resumen semanal, memoria y bitácora, programas listos, y todo seguro y en orden. En cada sesión Claude arranca con contexto, usa tu atajo, hace la tarea, mide el tiempo ahorrado y guarda lo aprendido.</desc>
+  <desc id="d">Instalas el skill con un comando; el instalador revisa Git, Python, Node.js y Playwright. Escribes «empezar» y respondes una entrevista corta. Claude investiga tu rol (responsabilidades, obligaciones, tareas comunes y programas) y de ahí saca los lineamientos de tu espacio. Una lista de arranque te lleva al 100 %. Queda listo: carpetas a tu medida, lineamientos del rol, un atajo por cada tarea, tiempo ahorrado medido en cada tarea, resumen semanal, memoria y bitácora, programas listos, y todo seguro y en orden. En cada sesión Claude arranca con contexto, usa tu atajo, hace la tarea, mide el tiempo ahorrado y guarda lo aprendido.</desc>
   <defs>
     <linearGradient id="fondo" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#0D1117"/>
@@ -85,9 +85,9 @@
     <circle cx="34" cy="36" r="15" fill="#F97316"/>
     <text class="num" x="34" y="41" text-anchor="middle">1</text>
     <text class="paso" x="58" y="43">Instala</text>
-    <text class="txt" x="20" y="78">Claude Code y el skill, con</text>
-    <text class="txt" x="20" y="97">un comando cada uno. Revisa</text>
-    <text class="txt" x="20" y="116">y te ofrece instalar:</text>
+    <text class="txt" x="20" y="78">El skill, con un solo comando.</text>
+    <text class="txt" x="20" y="97">Revisa tus programas y te</text>
+    <text class="txt" x="20" y="116">ofrece instalar lo que falte:</text>
     <rect x="20" y="128" width="44" height="24" rx="12" fill="#3B1D0C"/>
     <text class="chip" x="42" y="144" text-anchor="middle">Git</text>
     <rect x="70" y="128" width="62" height="24" rx="12" fill="#3B1D0C"/>
