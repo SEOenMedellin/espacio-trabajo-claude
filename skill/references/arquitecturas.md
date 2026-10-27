@@ -4,6 +4,12 @@ La arquitectura sale del **objetivo** de la persona, no de su cargo: dos
 personas con el mismo cargo pueden necesitar estructuras distintas. Se decide
 en cuatro pasos y se le explica a la persona en una frase.
 
+Los **lineamientos del rol** (`references/investigar-rol.md`) se aplican en
+cada paso: ayudan a elegir entre tipos base parecidos, justifican carpetas
+extra (registros que hay que conservar, información sensible separada,
+normas en el contexto) y van citados en el `por_que`. Un lineamiento nunca
+justifica pasar los límites de abajo.
+
 ## Paso 1 — ¿Qué produce el trabajo?
 
 Mira las tareas habituales y su `entrega`. La salida dominante decide el tipo

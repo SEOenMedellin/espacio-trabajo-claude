@@ -121,6 +121,13 @@ def main() -> int:
     if malos:
         print("Faltan piezas del espacio (" + "; ".join(f"{e} {q}" for e, q, _ in malos[:4])
               + "). Antes de la primera tarea, repáralas con primeros-pasos (montar.py).")
+    faltan = verificar.programas_faltantes(cfg)
+    if faltan:
+        print("Programas para trabajar que no están instalados: " + ", ".join(faltan) + ". Antes de una tarea "
+              "que los necesite, ofrécele a la persona instalarlos (perfil.md dice cómo) y espera su sí.")
+    if not cfg.get("investigacion_rol"):
+        print("El rol de la persona todavía no se ha investigado: ofrécele ampliar el espacio con primeros-pasos "
+              "para sumar los lineamientos del rol.")
     res = ordenar.escanear(raiz, cfg)
     n, d = len(res["hallazgos"]), len(res["duplicados"])
     if n or d:

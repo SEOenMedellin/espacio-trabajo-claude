@@ -97,7 +97,18 @@ def revisar(raiz: Path, cfg: dict) -> list[tuple[str, str, str]]:
         item("DIVERGE", ".claude/settings.json", "JSON inválido")
     item("OK" if (raiz / comun.ESTADO / "grafo.json").is_file() else "AVISO", f"{comun.ESTADO}/grafo.json",
          "" if (raiz / comun.ESTADO / "grafo.json").is_file() else "corre grafo.py --actualizar")
+    if not cfg.get("investigacion_rol"):
+        item("AVISO", "investigación del rol", "no se ha hecho: amplía el espacio con primeros-pasos")
+    for p in cfg.get("programas", []):
+        hay = comun.programa_disponible(p.get("comprobar", ""))
+        item("OK" if hay else "AVISO", f"programa {p.get('nombre')}",
+             "" if hay else "no está instalado (" + (p.get("instalar") or p.get("para", "")) + ")")
     return res
+
+
+def programas_faltantes(cfg: dict) -> list[str]:
+    return [p.get("nombre", "") for p in cfg.get("programas", [])
+            if not comun.programa_disponible(p.get("comprobar", ""))]
 
 
 def main(argv=None) -> int:
@@ -132,6 +143,10 @@ def main(argv=None) -> int:
         if malos:
             print("Faltan piezas del espacio (" + "; ".join(f"{e} {q}" for e, q, _ in malos[:4])
                   + "). Repáralas con primeros-pasos (montar.py) antes de la primera tarea.")
+        faltan = programas_faltantes(cfg)
+        if faltan:
+            print("Faltan programas para trabajar: " + ", ".join(faltan)
+                  + ". Antes de una tarea que los necesite, ofrécele a la persona instalarlos (con su confirmación).")
         return 0
     if a.json:
         print(json.dumps([{"estado": e, "que": q, "detalle": d} for e, q, d in res], ensure_ascii=False, indent=2))

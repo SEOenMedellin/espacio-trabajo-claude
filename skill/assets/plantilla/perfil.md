@@ -31,6 +31,33 @@ Cada tarea que se repita queda en la bitácora de peticiones con el mismo
 
 {{HERRAMIENTAS}}
 
+## Lo que exige el rol
+
+Sale de la investigación del rol ({{ROL_DOC}}), contrastada con la persona.
+
+**Responsabilidades**
+
+{{RESPONSABILIDADES}}
+
+**Obligaciones** (normas, registros y cuidados que cada entregable respeta)
+
+{{OBLIGACIONES}}
+
+## Lineamientos del espacio
+
+Reglas de diseño que salieron de la investigación. La arquitectura y cada
+tarea las respetan; si una tarea choca con un lineamiento, se le dice a la
+persona antes de seguir.
+
+{{LINEAMIENTOS}}
+
+## Programas para trabajar
+
+Lo que tiene que estar instalado en el equipo. `verificar.py` avisa si falta
+alguno; instalar siempre se confirma con la persona.
+
+{{PROGRAMAS}}
+
 ## Arquitectura elegida
 
 **{{TIPO}}**: {{POR_QUE}}

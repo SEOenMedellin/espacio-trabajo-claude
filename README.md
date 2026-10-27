@@ -58,6 +58,25 @@ herramientas) y a partir de ahí **decide qué estructura te sirve**:
 Si ya tienes archivos, se respetan. Si mañana cambian tus tareas o llega un
 proyecto nuevo, el espacio crece contigo sin perder nada.
 
+## Conoce tu oficio antes de organizarte
+
+Lo que cuentas en la entrevista es solo una parte. Antes de proponerte nada,
+primeros-pasos **investiga a fondo tu rol** en fuentes oficiales:
+
+- **Responsabilidades:** de qué respondes y cómo se mide tu trabajo.
+- **Obligaciones:** normas que te rigen, registros que debes conservar e
+  información que debes proteger. Son las que más se olvidan y las que más
+  pesan cuando faltan.
+- **Tareas comunes de tu rol:** te pregunta por las que no mencionaste, y solo
+  se suman las que de verdad haces.
+- **Programas que necesitas:** qué debe estar instalado en tu equipo para
+  trabajar, cuáles ya tienes y cuáles faltan. Te ofrece instalarlos, uno por
+  uno y con tu permiso, y te avisa al empezar cada sesión si falta alguno.
+
+De ahí salen **los lineamientos de tu espacio**: reglas con su porqué que
+deciden tus carpetas y que Claude respeta en cada tarea. La investigación
+queda guardada con sus fuentes, para que puedas revisarla cuando quieras.
+
 ## Un espacio que aprende
 
 Esto es lo que lo hace distinto: **mejora cuanto más lo usas.**

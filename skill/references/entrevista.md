@@ -54,7 +54,11 @@ que ya sabe (se pueden agregar después).
   `NUBE_CREDENCIALES`…) con una línea de para qué sirve cada uno.
   Solo nombres: **nunca valores**.
 - **Arquitectura:** con `references/arquitecturas.md` (objetivo + tareas +
-  destinatarios + modo + lo que ya hay en el repositorio).
+  destinatarios + modo + lineamientos del rol + lo que ya hay en el repositorio).
+- **Programas:** de las tareas, las herramientas y la investigación del rol,
+  deduce qué programas deben estar instalados (lenguajes, entornos de
+  ejecución, utilidades de línea de comandos, bibliotecas) y cómo comprobar
+  cada uno. Solo los que una tarea concreta necesite.
 - **Conocimientos:** normaliza la lista (temas concretos, no frases largas).
 - **Tareas:** cada una con `tarea`, `frecuencia` (si la dijo) y `entrega`
   (qué produce). De aquí salen las categorías de entregables y, a futuro, los
@@ -62,7 +66,7 @@ que ya sabe (se pueden agregar después).
 
 ## 4. Confirmación
 
-Muestra la propuesta en lenguaje sencillo (ver SKILL.md, paso 5) y pregunta
+Muestra la propuesta en lenguaje sencillo (ver SKILL.md, paso 6) y pregunta
 con `AskUserQuestion`: «Sí, prepáralo» · «Quiero cambiar algo» · «Ahora no».
 Sin un «Sí, prepáralo» en esta conversación no se escribe nada.
 
@@ -108,9 +112,21 @@ Se escribe en la raíz con `Write`; `montar.py` lo borra al terminar bien.
   },
   "credenciales": [
     {"variable": "ERP_USUARIO", "para": "Usuario de solo lectura para exportar del ERP"}
-  ]
+  ],
+  "programas": [
+    {"nombre": "Intérprete del lenguaje de análisis", "para": "Correr los scripts de limpieza y cálculo",
+     "comprobar": "<comando> --version", "instalar": "Instalador oficial (URL de la fuente oficial)"}
+  ],
+  "investigacion_rol": { "…": "ver references/investigar-rol.md § 6" }
 }
 ```
+
+`programas`: cada uno con `nombre`, `para` y `comprobar` (el comando que
+muestra su versión; su primera palabra debe ser el ejecutable, que
+`verificar.py` busca en el sistema). `instalar` es opcional: la fuente oficial
+o la orden del gestor de paquetes. Para una biblioteca o un complemento que no
+es un ejecutable propio, `comprobar` es el comando de la herramienta que lo
+carga.
 
 Modo multiproyecto: `"modo": "multiproyecto"`, un bloque
 `"proyectos": {"base": "proyectos", "lista": ["cliente-a", "cliente-b"]}` y
@@ -120,7 +136,9 @@ global se queda en la raíz. Las carpetas extra pueden llevar `<proyecto>` si
 son por proyecto.
 
 Reglas que valida `montar.py` (código 2 si no se cumplen): perfil con cargo,
-proyecto, objetivo y al menos una tarea; rutas relativas, sin `..`, fuera de
+proyecto, objetivo y al menos una tarea; `investigacion_rol` completa (ver
+`references/investigar-rol.md`); cada programa con `nombre`, `para` y
+`comprobar`; rutas relativas, sin `..`, fuera de
 `.claude/`, `.git/` y `.espacio/`; cada carpeta extra con `ruta` y `para`;
 nombres de proyecto en minúsculas con guiones y hasta 30 caracteres; que cada
 carpeta deje sitio a sus archivos sin pasar de 6 niveles ni 150 caracteres

@@ -12,7 +12,13 @@ cambiarlo, vuelve a correr `primeros-pasos` (o edita `espacio.json` y corre
 - **Para quién es el trabajo:** {{DESTINATARIOS}}
 - **Modo:** {{MODO}}
 
-Perfil completo (conocimientos, tareas habituales, herramientas): `{{DOCS}}/perfil.md`.
+Perfil completo (conocimientos, tareas habituales, herramientas, programas):
+`{{DOCS}}/perfil.md`. Investigación del rol: {{ROL_DOC}}.
+
+**Lineamientos del rol** — reglas que salen de lo que exige el oficio; cada
+tarea las respeta:
+
+{{LINEAMIENTOS}}
 
 **Cómo hablarle:** {{TRATO}} Idioma: `{{IDIOMA}}`.
 

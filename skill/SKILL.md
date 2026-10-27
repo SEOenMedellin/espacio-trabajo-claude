@@ -4,8 +4,9 @@ description: >
   Configuración inicial del espacio de trabajo de un colaborador en cualquier
   repositorio, para cualquier cargo y proyecto. Entrevista a la persona (cargo,
   proyecto y objetivo, conocimientos que Claude debe tener, tareas habituales,
-  herramientas), decide qué arquitectura de carpetas necesita según su objetivo
-  y la monta con CLAUDE.md, bitácoras, memoria de trabajo, grafo de
+  herramientas), investiga a fondo su rol (responsabilidades, obligaciones,
+  tareas comunes y programas que necesita), saca de ahí los lineamientos de la
+  arquitectura de carpetas que necesita según su objetivo y la monta con CLAUDE.md, bitácoras, memoria de trabajo, grafo de
   orquestación, protocolo de investigación profunda, creación de skills a
   partir del trabajo, credenciales seguras y hooks de inicio y cierre de
   sesión. Actívalo cuando alguien escriba "empezar", "iniciar", "primeros
@@ -28,7 +29,9 @@ va cada cosa, qué se resolvió antes y cómo aprender de cada tarea.
 | Pieza | Para qué |
 |---|---|
 | `espacio.json` | La configuración: perfil, arquitectura y rutas de cada rol. Todo lo demás se deriva de aquí |
-| Arquitectura de carpetas | Elegida según el objetivo (`references/arquitecturas.md`) |
+| Investigación del rol | Responsabilidades, obligaciones, tareas comunes y programas del oficio, con fuentes; de ella salen los lineamientos (`references/investigar-rol.md`) |
+| Arquitectura de carpetas | Elegida según el objetivo y los lineamientos del rol (`references/arquitecturas.md`) |
+| Programas para trabajar | Lo que debe estar instalado en el equipo; el aviso de inicio dice cuáles faltan y se instalan solo con confirmación |
 | `CLAUDE.md` (bloque entre marcadores) | Perfil, mapa de carpetas y protocolo de trabajo; respeta lo que ya hubiera |
 | `docs/espacio-de-trabajo/` | Convenciones: carpetas, bitácoras, memoria, grafo, investigación, crear skills, credenciales, y el perfil |
 | Bitácora de trabajo | Una entrada por tarea del rol, con patrones, conocimiento adyacente y correcciones. Nunca registra configuración ni nada del sistema |
@@ -64,7 +67,7 @@ remotos de git ni publica nada fuera del repositorio.
 
 | Situación | Ir a |
 |---|---|
-| No hay `espacio.json` en la raíz | Montaje completo, pasos 1 a 8 |
+| No hay `espacio.json` en la raíz | Montaje completo, pasos 1 a 9 |
 | Hay `espacio.json` y la persona trae algo nuevo (proyecto, cargo, tareas) | Ampliar |
 | El aviso de inicio o `verificar.py` dice que faltan piezas | Reparar |
 | Hay una versión nueva de este skill | Actualizar |
@@ -105,15 +108,31 @@ conocimientos, tareas, herramientas), como mucho una repregunta, y una ronda
 cerrada con `AskUserQuestion` (uno o varios proyectos, destinatarios, trato,
 historial de versiones).
 
-## Paso 4 — Decidir la arquitectura
+## Paso 4 — Investigar el rol
 
-Con `references/arquitecturas.md`: tipo base según lo que produce el trabajo,
-modo único o multiproyecto, carpetas extra que justifique cada tarea (como
-mucho 7 en el primer nivel) y adaptación a lo que ya existe. Deduce además los
+Obligatorio antes de decidir la arquitectura. Con `references/investigar-rol.md`:
+investiga a fondo el rol (responsabilidades, obligaciones, tareas comunes,
+ciclos, métodos, riesgos y **programas que hay que tener instalados**) en
+fuentes oficiales, cruzando al menos dos en lo que cambie la arquitectura.
+Convierte los hallazgos en **lineamientos**: reglas de diseño con su porqué.
+Anuncia en una frase que lo vas a hacer; no hace falta pedir permiso. Si no
+hay internet o la persona no quiere, sigue con la entrevista y anota el motivo
+en `limitacion`.
+
+Para cada programa, comprueba si ya está instalado corriendo su comando de
+versión (`<programa> --version` o el que corresponda): así la propuesta dice
+cuáles faltan.
+
+## Paso 5 — Decidir la arquitectura
+
+Con `references/arquitecturas.md` y los lineamientos del paso 4: tipo base
+según lo que produce el trabajo, modo único o multiproyecto, carpetas extra
+que justifique cada tarea o lineamiento (como mucho 7 en el primer nivel) y
+adaptación a lo que ya existe. Deduce además los
 accesos que harán falta (solo nombres de variable) y las categorías de
 entregables. Escribe el porqué en una frase.
 
-## Paso 5 — Proponer y confirmar
+## Paso 6 — Proponer y confirmar
 
 Escribe `respuestas-espacio.json` en la raíz (esquema en
 `references/entrevista.md` § 5) y valida en seco:
@@ -131,6 +150,12 @@ un dato, pregúntalo) y repite. Código 0: muéstrale la propuesta en sencillo:
 >   línea de para qué sirve cada carpeta)*
 > - **Lo que voy a saber de ti:** tu cargo, tus tareas habituales y los temas
 >   que debo dominar.
+> - **Lo que encontré de tu rol:** responsabilidades y obligaciones (con sus
+>   fuentes) y las reglas que salen de ahí para tu espacio. *«Es habitual en
+>   tu rol hacer X; ¿también lo haces?»* para cada tarea común que no
+>   mencionó: solo se suman las que confirme.
+> - **Programas que vas a necesitar:** cuáles ya tienes y cuáles faltan, con
+>   una línea de para qué sirve cada uno.
 > - **Memoria:** anotaré lo que aprendamos y cada tarea que hagamos, para no
 >   repetirte preguntas y para proponerte automatizar lo que se repita.
 > - **Accesos que vamos a necesitar:** ERP (usuario de solo lectura). Te
@@ -140,7 +165,7 @@ un dato, pregúntalo) y repite. Código 0: muéstrale la propuesta en sencillo:
 cambios, ajusta el JSON y vuelve a este paso. Con «Ahora no», borra el JSON.
 **No sigas sin un «Sí, prepáralo» en esta conversación.**
 
-## Paso 6 — Montar y verificar
+## Paso 7 — Montar y verificar
 
 ```bash
 python <skill>/scripts/montar.py --respuestas respuestas-espacio.json
@@ -159,17 +184,22 @@ bitácora ni en la memoria: esas son solo del trabajo de la persona.
 | `verificar.py` con `AVISO credenciales/.env` | Normal mientras no haya valores |
 | Cualquier `FALTA` o `DIVERGE` | Sección Reparar |
 
-## Paso 7 — Contarle a la persona
+## Paso 8 — Contarle a la persona
 
 Dos o tres frases, sin términos técnicos: que su espacio quedó listo, dónde
 va a encontrar su trabajo, y que nunca pegue claves en el chat. Para ti: los
 hooks se activan desde la próxima sesión de Claude Code.
 
-## Paso 8 — Primeros pasos de verdad
+## Paso 9 — Primeros pasos de verdad
 
 Ofrece, en una sola `AskUserQuestion` con selección múltiple, lo que más
 valor le da al arrancar (todo opcional):
 
+- **Instalar los programas que faltan** (solo si `verificar.py` marca
+  alguno): uno por uno, desde la fuente oficial o el gestor de paquetes del
+  sistema, diciendo antes qué se instala y para qué. Si un instalador pide
+  permisos de administrador, se lo explicas y lo corre la persona
+  (`! <comando>`). Al final, `verificar.py` para confirmarlo.
 - **Traer los documentos del proyecto** a la carpeta de contexto (briefs,
   manuales, contratos, datos de ejemplo). Leerlos completos y resumir en una
   línea qué aporta cada uno.
@@ -205,11 +235,14 @@ Esta misma regla aplica fuera de `ordenar.py`: cualquier `mv`, `git mv`,
 
 ## Ampliar
 
-Cuando hay `espacio.json` y cambia algo del trabajo: entrevista solo lo nuevo,
+Cuando hay `espacio.json` y cambia algo del trabajo: entrevista solo lo nuevo.
+Si cambió el cargo, o se suman tareas de otro tipo, o el espacio no tiene
+investigación del rol, vuelve a investigarlo (paso 4): la nueva queda con su
+fecha y la anterior se conserva. Luego
 lee el `espacio.json` actual, arma `respuestas-espacio.json` con el perfil
 completo actualizado y lo que se suma (proyectos, carpetas, credenciales), y
-sigue desde el paso 5. `montar.py` reemplaza el perfil y **suma** carpetas,
-proyectos y credenciales; nunca quita. Si el cambio pide quitar o mover
+sigue desde el paso 6. `montar.py` reemplaza el perfil y la investigación del
+rol y **suma** carpetas, proyectos, credenciales y programas; nunca quita. Si el cambio pide quitar o mover
 carpetas, se hace a mano con la persona (moverlas siempre se confirma).
 Después, `montar.py --actualizar` para que `CLAUDE.md` refleje el perfil nuevo.
 
@@ -260,6 +293,7 @@ revisa la copia y vuelve a aplicar su cambio.
 
 | Archivo | Cuándo leerlo |
 |---|---|
-| `references/entrevista.md` | Pasos 3 y 5: preguntas, inferencias y esquema del JSON |
-| `references/arquitecturas.md` | Paso 4: cómo decidir y los seis tipos |
+| `references/entrevista.md` | Pasos 3 y 6: preguntas, inferencias y esquema del JSON |
+| `references/investigar-rol.md` | Paso 4: qué investigar del rol, cómo convertirlo en lineamientos y el bloque `investigacion_rol` |
+| `references/arquitecturas.md` | Paso 5: cómo decidir y los seis tipos |
 | `assets/plantilla/` | Lo que renderiza `montar.py` (CLAUDE.md, convenciones, bitácoras, hooks). No se edita por proyecto |

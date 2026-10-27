@@ -57,6 +57,17 @@ def write(repo_, ruta):
         "file_path": str(repo_ / ruta), "content": "x"}}), esperado=0).stdout
 
 
+ROL = {
+    "fecha": "27-oct-2026", "rol": "Analista de operaciones",
+    "responsabilidades": ["Medir el cumplimiento de entregas"],
+    "obligaciones": ["Conservar los datos fuente de cada indicador"],
+    "tareas_comunes": ["Cierre mensual de indicadores"],
+    "lineamientos": [{"regla": "Los exportes originales no se modifican", "por_que": "Cada indicador debe poder rehacerse",
+                      "aplica_en": "datos/crudos/"}],
+    "supuestos": [], "fuentes": [{"titulo": "Clasificación de ocupaciones", "url": "https://ejemplo.org/ocupaciones",
+                                  "consultado": "27-oct-2026"}],
+}
+
 # ---------- Repo A: un proyecto, análisis de datos, con código previo
 A = repo("a")
 (A / "src").mkdir()
@@ -78,6 +89,9 @@ resp = {
     "rutas": {"contexto": "contexto/", "entregables": "reportes/<DD-mmm-YYYY>/", "investigacion": "investigacion/",
               "memoria_global": "memoria/", "bitacora_peticiones": "bitacora-peticiones.md"},
     "credenciales": [{"variable": "ERP_USUARIO", "para": "Usuario de solo lectura"}],
+    "programas": [{"nombre": "Programa ausente", "para": "Correr el análisis",
+                   "comprobar": "programa-que-no-existe-pp --version", "instalar": "https://ejemplo.org/descargas"}],
+    "investigacion_rol": ROL,
 }
 (A / "respuestas-espacio.json").write_text(json.dumps(resp, ensure_ascii=False), encoding="utf-8")
 run(A, ["verificar.py"], esperado=2)
@@ -88,6 +102,17 @@ profundo = json.loads(json.dumps(resp))
 profundo["arquitectura"]["carpetas"].append({"ruta": "a/b/c/d/e/", "para": "demasiado profundo"})
 (A / "malo.json").write_text(json.dumps(profundo), encoding="utf-8")
 run(A, ["montar.py", "--respuestas", "malo.json", "--dry-run"], esperado=2)
+# la investigación del rol es obligatoria al montar, con fuentes o con su limitación
+for malo, nota in [({k: v for k, v in resp.items() if k != "investigacion_rol"}, "sin investigación del rol"),
+                   (dict(resp, investigacion_rol=dict(ROL, fuentes=[])), "sin fuentes ni limitación"),
+                   (dict(resp, investigacion_rol=dict(ROL, lineamientos=[{"regla": "x"}])), "lineamiento sin por_que"),
+                   (dict(resp, programas=[{"nombre": "x", "para": "y"}]), "programa sin comprobar")]:
+    (A / "malo.json").write_text(json.dumps(malo, ensure_ascii=False), encoding="utf-8")
+    if run(A, ["montar.py", "--respuestas", "malo.json", "--dry-run"]).returncode != 2:
+        fallos.append(f"montar aceptó respuestas {nota}")
+(A / "malo.json").write_text(json.dumps(dict(resp, investigacion_rol=dict(
+    ROL, fuentes=[], limitacion="Sin acceso a internet"))), encoding="utf-8")
+run(A, ["montar.py", "--respuestas", "malo.json", "--dry-run"], esperado=0)
 (A / "malo.json").unlink()
 run(A, ["montar.py", "--respuestas", "respuestas-espacio.json", "--dry-run"], esperado=0)
 run(A, ["montar.py", "--respuestas", "respuestas-espacio.json"], esperado=0)
@@ -95,7 +120,19 @@ if (A / "respuestas-espacio.json").exists():
     fallos.append("montar no borró respuestas-espacio.json")
 if (A / "BITACORA.md").exists():
     fallos.append("el montaje creó BITACORA.md: lo del sistema no se registra")
-run(A, ["verificar.py"], esperado=0)
+r = run(A, ["verificar.py"], esperado=0)
+if "AVISO" not in r.stdout or "Programa ausente" not in r.stdout:
+    fallos.append("verificar no avisó del programa que falta")
+doc_rol = A / "investigacion/27-oct-2026-rol-analista-de-operaciones.md"
+if not doc_rol.is_file() or "ejemplo.org/ocupaciones" not in doc_rol.read_text(encoding="utf-8"):
+    fallos.append("montar no guardó la investigación del rol con sus fuentes")
+for f in ("CLAUDE.md", "docs/espacio-de-trabajo/perfil.md"):
+    if "Los exportes originales no se modifican" not in (A / f).read_text(encoding="utf-8"):
+        fallos.append(f"{f} no lleva los lineamientos del rol")
+if "Programa ausente" not in (A / "docs/espacio-de-trabajo/perfil.md").read_text(encoding="utf-8"):
+    fallos.append("perfil.md no lista los programas")
+if "Programa ausente" not in run(A, ["inicio.py"], stdin="{}").stdout:
+    fallos.append("el aviso de inicio no dice qué programas faltan")
 r = run(A, ["montar.py"], esperado=0)
 if "creado" in r.stdout.replace("ya existía", ""):
     fallos.append("montar no es idempotente")
@@ -190,6 +227,7 @@ respB = {
                      "carpetas": [{"ruta": "proyectos/<proyecto>/historial/", "para": "Datos de cada corrida"},
                                   {"ruta": "plantillas/", "para": "Formatos base"}]},
     "proyectos": {"base": "proyectos", "lista": ["cliente-a", "cliente-b"]},
+    "investigacion_rol": dict(ROL, rol="Consultor"),
     "rutas": {"contexto": "proyectos/<proyecto>/contexto/", "entregables": "proyectos/<proyecto>/<DD-mmm-YYYY>/",
               "investigacion": "investigacion/", "memoria_global": "memoria/",
               "memoria_proyecto": "proyectos/<proyecto>/memoria/",
@@ -198,6 +236,13 @@ respB = {
 (B / "respuestas-espacio.json").write_text(json.dumps(respB, ensure_ascii=False), encoding="utf-8")
 run(B, ["montar.py", "--respuestas", "respuestas-espacio.json"], esperado=0)
 run(B, ["verificar.py"], esperado=0)
+# un espacio de una versión anterior, sin investigación del rol, se sigue reparando
+cfg_b = json.loads((B / "espacio.json").read_text(encoding="utf-8"))
+cfg_b.pop("investigacion_rol")
+(B / "espacio.json").write_text(json.dumps(cfg_b, ensure_ascii=False), encoding="utf-8")
+run(B, ["montar.py"], esperado=0)
+if "investigación del rol" not in run(B, ["verificar.py"], esperado=0).stdout:
+    fallos.append("verificar no avisó que falta la investigación del rol")
 run(B, ["bitacora.py"], esperado=2)
 run(B, ["bitacora.py", "--proyecto", "cliente-a", "--siguiente"], esperado=0)
 run(B, ["grafo.py", "--plan", "diagnóstico", "--proyecto", "cliente-b"], esperado=0)

@@ -25,7 +25,7 @@ SKILL = AQUI.parent
 CONFIG = "espacio.json"
 ESTADO = ".espacio"                  # derivados: grafo, sesiones, respaldos
 DOCS = "docs/espacio-de-trabajo"     # convenciones copiadas al repositorio
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 MARCA_INICIO = "<!-- primeros-pasos:inicio -->"
 MARCA_FIN = "<!-- primeros-pasos:fin -->"
 MESES = ("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")
@@ -105,6 +105,12 @@ def resolver(cfg: dict, proyecto: str | None = None) -> dict:
             valor = valor.replace("<proyecto>", proyecto)
         res[rol] = valor
     return res
+
+
+def programa_disponible(comprobar: str) -> bool:
+    """¿Está en el PATH el ejecutable con el que empieza `comprobar`?"""
+    partes = (comprobar or "").split()
+    return bool(partes) and shutil.which(partes[0]) is not None
 
 
 def base_dir(ruta: str) -> str:

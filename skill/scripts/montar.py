@@ -31,6 +31,7 @@ import comun  # noqa: E402
 
 PLANTILLA = comun.SKILL / "assets" / "plantilla"
 VAR = re.compile(r"^[A-Z][A-Z0-9_]*$")
+FECHA = re.compile(r"^\d{2}-(" + "|".join(comun.MESES) + r")-\d{4}$")
 GITIGNORE = ["credenciales/*", "!credenciales/.env.example", ".env", f"{comun.ESTADO}/",
              "respuestas-espacio.json", "__pycache__/"]
 
@@ -48,8 +49,38 @@ class Reporte:
 
 # ---------------------------------------------------------------- validación
 
-def validar(cfg: dict) -> list[str]:
+def validar_rol(inv) -> list[str]:
+    """La investigación del rol: de ella salen los lineamientos de la arquitectura."""
+    if not isinstance(inv, dict) or not inv:
+        return ["falta investigacion_rol: investiga el rol antes de decidir la arquitectura "
+                "(references/investigar-rol.md)"]
     err = []
+    if not FECHA.match(str(inv.get("fecha", ""))):
+        err.append("investigacion_rol.fecha debe ir en formato DD-mmm-YYYY")
+    if not str(inv.get("rol", "")).strip():
+        err.append("investigacion_rol.rol está vacío")
+    for campo in ("responsabilidades", "tareas_comunes", "lineamientos"):
+        if not inv.get(campo):
+            err.append(f"investigacion_rol.{campo} no puede ir vacío")
+    for l in inv.get("lineamientos", []):
+        if not isinstance(l, dict) or not l.get("regla") or not l.get("por_que"):
+            err.append(f"cada lineamiento necesita 'regla' y 'por_que': {l}")
+    fuentes = inv.get("fuentes", [])
+    if not fuentes and not str(inv.get("limitacion", "")).strip():
+        err.append("investigacion_rol.fuentes está vacía: cita las fuentes o explica en 'limitacion' por qué no se investigó")
+    for f in fuentes:
+        if not isinstance(f, dict) or not f.get("titulo") or not f.get("url")                 or not FECHA.match(str(f.get("consultado", ""))):
+            err.append(f"cada fuente necesita 'titulo', 'url' y 'consultado' (DD-mmm-YYYY): {f}")
+    return err
+
+
+def validar(cfg: dict, exigir_rol: bool = False) -> list[str]:
+    err = []
+    if exigir_rol or "investigacion_rol" in cfg:
+        err += validar_rol(cfg.get("investigacion_rol"))
+    for p in cfg.get("programas", []):
+        if not isinstance(p, dict) or not p.get("nombre") or not p.get("para") or not p.get("comprobar"):
+            err.append(f"cada programa necesita 'nombre', 'para' y 'comprobar' (comando que muestra su versión): {p}")
     perfil = cfg.get("perfil", {})
     for campo in ("cargo", "proyecto", "objetivo"):
         if not str(perfil.get(campo, "")).strip():
@@ -107,7 +138,7 @@ def validar(cfg: dict) -> list[str]:
 def combinar(viejo: dict, nuevo: dict) -> dict:
     """El perfil y la arquitectura nuevos mandan; carpetas, proyectos y credenciales se suman."""
     res = json.loads(json.dumps(viejo))
-    for k in ("perfil", "idioma", "trato", "git"):
+    for k in ("perfil", "idioma", "trato", "git", "investigacion_rol"):
         if k in nuevo:
             res[k] = nuevo[k]
     arq_v, arq_n = res.setdefault("arquitectura", {}), nuevo.get("arquitectura", {})
@@ -128,6 +159,11 @@ def combinar(viejo: dict, nuevo: dict) -> dict:
     for c in nuevo.get("credenciales", []):
         creds[c["variable"]] = c
     res["credenciales"] = list(creds.values())
+    progs = {p["nombre"]: p for p in res.get("programas", [])}
+    for p in nuevo.get("programas", []):
+        progs[p["nombre"]] = p
+    if progs:
+        res["programas"] = list(progs.values())
     return res
 
 
@@ -165,8 +201,52 @@ def mapa_carpetas(cfg: dict) -> str:
     return "\n".join(filas)
 
 
+def lineamientos_md(inv: dict) -> str:
+    if not inv:
+        return "Sin investigación del rol todavía: amplía el espacio con primeros-pasos para hacerla."
+    return "\n".join(f"- **{l['regla']}.** {l['por_que']}" + (f" → `{l['aplica_en']}`" if l.get("aplica_en") else "")
+                     for l in inv.get("lineamientos", []))
+
+
+def programas_md(cfg: dict) -> str:
+    filas = []
+    for p in cfg.get("programas", []):
+        como = f" Instalar: {p['instalar']}." if p.get("instalar") else ""
+        filas.append(f"- **{p['nombre']}** — {p['para']}. Comprobar: `{p['comprobar']}`.{como}")
+    return "\n".join(filas) or "Ninguno por ahora."
+
+
+def archivo_rol(cfg: dict) -> str | None:
+    """Ruta relativa del documento de la investigación del rol, o None."""
+    inv = cfg.get("investigacion_rol")
+    if not inv:
+        return None
+    base = comun.base_dir(cfg["rutas"]["investigacion"])
+    nombre = f"{inv['fecha']}-rol-{comun.slug(inv.get('rol') or cfg['perfil']['cargo'], largo=40)}.md"
+    return nombre if base == "." else f"{base}/{nombre}"
+
+
+def documento_rol(cfg: dict) -> str:
+    inv = cfg["investigacion_rol"]
+    fuentes = [f"- {f['titulo']}. {f['url']} (consultado el {f['consultado']})" for f in inv.get("fuentes", [])]
+    partes = [f"# Investigación del rol — {inv['rol']}", "",
+              f"Hecha el {inv['fecha']} para diseñar el espacio de trabajo de **{cfg['perfil']['proyecto']}**. "
+              "Se rehace cuando cambia el cargo; las versiones anteriores se conservan.", "",
+              "## Responsabilidades", "", lista_md(inv.get("responsabilidades")), "",
+              "## Obligaciones", "", lista_md(inv.get("obligaciones")), "",
+              "## Tareas comunes del rol", "", lista_md(inv.get("tareas_comunes")), "",
+              "## Lineamientos para el espacio", "", lineamientos_md(inv), "",
+              "## Programas para trabajar", "", programas_md(cfg), "",
+              "## Supuestos", "", lista_md(inv.get("supuestos"), "Ninguno."), ""]
+    if inv.get("limitacion"):
+        partes += ["## Limitación", "", inv["limitacion"], ""]
+    partes += ["## Fuentes", "", "\n".join(fuentes) or "Ninguna.", ""]
+    return "\n".join(partes)
+
+
 def variables(cfg: dict, raiz: Path) -> dict:
     p = cfg["perfil"]
+    inv = cfg.get("investigacion_rol") or {}
     multi = cfg["arquitectura"]["modo"] == "multiproyecto"
     lista = comun.proyectos(cfg)
     rel = comun.skill_rel(raiz)
@@ -179,6 +259,11 @@ def variables(cfg: dict, raiz: Path) -> dict:
         "CONOCIMIENTOS": lista_md(p.get("conocimientos")),
         "TAREAS": lista_md(p.get("tareas")),
         "HERRAMIENTAS": lista_md(p.get("herramientas")),
+        "RESPONSABILIDADES": lista_md(inv.get("responsabilidades")),
+        "OBLIGACIONES": lista_md(inv.get("obligaciones")),
+        "LINEAMIENTOS": lineamientos_md(inv),
+        "PROGRAMAS": programas_md(cfg),
+        "ROL_DOC": f"`{archivo_rol(cfg)}`" if inv else "pendiente",
         "TRATO": cfg.get("trato") or "Directo y claro; términos técnicos solo si la persona los usa primero.",
         "IDIOMA": cfg.get("idioma", "es"),
         "TIPO": cfg["arquitectura"]["tipo"],
@@ -407,6 +492,8 @@ def montar(raiz: Path, cfg: dict, seco: bool, forzar: bool, cfg_cambio: bool) ->
                 crear_si_falta(raiz / comun.base_dir(r) / "README.md",
                                render((PLANTILLA / "memoria-README.md").read_text(encoding="utf-8"), v),
                                raiz, rep, seco)
+    if archivo_rol(cfg):
+        crear_si_falta(raiz / archivo_rol(cfg), documento_rol(cfg), raiz, rep, seco)
     bloque_claude(raiz, v, rep, seco, forzar)
     convenciones(raiz, v, rep, seco, forzar)
     credenciales(raiz, cfg, rep, seco)
@@ -451,7 +538,7 @@ def main(argv=None) -> int:
         return 2
     if a.actualizar:
         cfg["version"] = comun.VERSION
-    errores = validar(cfg)
+    errores = validar(cfg, exigir_rol=bool(a.respuestas))
     if errores:
         for e in errores:
             print(f"VALIDACIÓN: {e}", file=sys.stderr)
