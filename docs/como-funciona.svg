@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="t d">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="830" viewBox="0 0 1200 830" role="img" aria-labelledby="t d">
   <title id="t">Cómo funciona primeros-pasos</title>
-  <desc id="d">Instalas con una línea, escribes «empezar», respondes una entrevista corta y tu repositorio queda listo: carpetas a tu medida, Claude que te conoce, memoria, bitácora, accesos seguros y orden automático. Cada sesión arranca con contexto y termina guardando lo aprendido.</desc>
+  <desc id="d">Instalas con una línea, que también revisa Python, Node.js y Playwright. Escribes «empezar» y respondes una entrevista corta. Claude investiga tu rol (responsabilidades, obligaciones, tareas comunes y programas) y de ahí saca los lineamientos de tu espacio. Tu repositorio queda listo: carpetas a tu medida, lineamientos del rol, Claude que te conoce, memoria, bitácora, programas listos, accesos seguros y orden automático. Cada sesión arranca con contexto y termina guardando lo aprendido.</desc>
   <defs>
     <linearGradient id="fondo" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#FBF8F3"/>
@@ -14,116 +14,153 @@
       .h1 { font-size: 34px; font-weight: 700; }
       .sub { font-size: 18px; fill: #57606A; }
       .num { font-size: 15px; font-weight: 700; fill: #FFFFFF; }
-      .paso { font-size: 21px; font-weight: 700; }
-      .txt { font-size: 15px; fill: #57606A; }
-      .code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; fill: #1F2328; }
+      .paso { font-size: 19px; font-weight: 700; }
+      .txt { font-size: 14px; fill: #57606A; }
+      .chip { font-size: 12px; font-weight: 600; fill: #9A3412; }
       .seccion { font-size: 13px; font-weight: 700; letter-spacing: 1.5px; fill: #C2410C; }
-      .tit { font-size: 17px; font-weight: 700; }
+      .tit { font-size: 16px; font-weight: 700; }
       .ciclo { font-size: 16px; font-weight: 600; fill: #FFFFFF; }
     </style>
   </defs>
 
-  <rect width="1200" height="760" rx="24" fill="url(#fondo)"/>
+  <rect width="1200" height="830" rx="24" fill="url(#fondo)"/>
 
   <text class="h1" x="60" y="78">De carpeta vacía a un espacio que aprende contigo</text>
-  <text class="sub" x="60" y="112">Tres pasos y Claude trabaja sabiendo quién eres, qué haces y dónde va cada cosa.</text>
+  <text class="sub" x="60" y="112">Cuatro pasos y Claude trabaja sabiendo quién eres, qué exige tu oficio y dónde va cada cosa.</text>
 
   <!-- Paso 1 -->
   <g transform="translate(60 150)">
-    <rect width="320" height="170" rx="16" fill="#FFFFFF" stroke="#E4DDD2"/>
-    <circle cx="36" cy="38" r="16" fill="#C2410C"/>
-    <text class="num" x="36" y="43" text-anchor="middle">1</text>
-    <text class="paso" x="64" y="45">Instala en una línea</text>
-    <text class="txt" x="24" y="82">Desde la carpeta de tu proyecto,</text>
-    <text class="txt" x="24" y="102">en Mac, Linux o Windows.</text>
-    <rect x="24" y="120" width="272" height="30" rx="6" fill="#F6F3EE"/>
-    <text class="code" x="36" y="140">curl … | bash   ·   irm … | iex</text>
+    <rect width="246" height="200" rx="16" fill="#FFFFFF" stroke="#E4DDD2"/>
+    <circle cx="34" cy="36" r="15" fill="#C2410C"/>
+    <text class="num" x="34" y="41" text-anchor="middle">1</text>
+    <text class="paso" x="58" y="43">Instala</text>
+    <text class="txt" x="20" y="78">Una línea desde la carpeta de</text>
+    <text class="txt" x="20" y="97">tu proyecto, en Mac, Linux o</text>
+    <text class="txt" x="20" y="116">Windows. Revisa y te ofrece</text>
+    <text class="txt" x="20" y="135">instalar lo que falte:</text>
+    <rect x="20" y="152" width="62" height="26" rx="13" fill="#FDEBDD"/>
+    <text class="chip" x="51" y="169" text-anchor="middle">Python</text>
+    <rect x="88" y="152" width="66" height="26" rx="13" fill="#FDEBDD"/>
+    <text class="chip" x="121" y="169" text-anchor="middle">Node.js</text>
+    <rect x="160" y="152" width="70" height="26" rx="13" fill="#FDEBDD"/>
+    <text class="chip" x="195" y="169" text-anchor="middle">Playwright</text>
   </g>
 
-  <path d="M388 235 H432" stroke="#C2410C" stroke-width="2.5" fill="none" marker-end="url(#flecha)"/>
+  <path d="M310 250 H336" stroke="#C2410C" stroke-width="2.5" fill="none" marker-end="url(#flecha)"/>
 
   <!-- Paso 2 -->
-  <g transform="translate(440 150)">
-    <rect width="320" height="170" rx="16" fill="#FFFFFF" stroke="#E4DDD2"/>
-    <circle cx="36" cy="38" r="16" fill="#C2410C"/>
-    <text class="num" x="36" y="43" text-anchor="middle">2</text>
-    <text class="paso" x="64" y="45">Escribe «empezar»</text>
-    <text class="txt" x="24" y="82">Unos minutos de conversación:</text>
-    <text class="txt" x="24" y="102">tu cargo, tu objetivo, tus tareas</text>
-    <text class="txt" x="24" y="122">y tus herramientas. Nada se crea</text>
-    <text class="txt" x="24" y="142">hasta que apruebes la propuesta.</text>
+  <g transform="translate(338 150)">
+    <rect width="246" height="200" rx="16" fill="#FFFFFF" stroke="#E4DDD2"/>
+    <circle cx="34" cy="36" r="15" fill="#C2410C"/>
+    <text class="num" x="34" y="41" text-anchor="middle">2</text>
+    <text class="paso" x="58" y="43">Escribe «empezar»</text>
+    <text class="txt" x="20" y="78">Unos minutos de conversación:</text>
+    <text class="txt" x="20" y="97">tu cargo, tu objetivo, tus</text>
+    <text class="txt" x="20" y="116">tareas y tus herramientas.</text>
+    <text class="txt" x="20" y="148">Nada se crea hasta que</text>
+    <text class="txt" x="20" y="167">apruebes la propuesta.</text>
   </g>
 
-  <path d="M768 235 H812" stroke="#C2410C" stroke-width="2.5" fill="none" marker-end="url(#flecha)"/>
+  <path d="M588 250 H614" stroke="#C2410C" stroke-width="2.5" fill="none" marker-end="url(#flecha)"/>
 
   <!-- Paso 3 -->
-  <g transform="translate(820 150)">
-    <rect width="320" height="170" rx="16" fill="#FFFFFF" stroke="#E4DDD2"/>
-    <circle cx="36" cy="38" r="16" fill="#C2410C"/>
-    <text class="num" x="36" y="43" text-anchor="middle">3</text>
-    <text class="paso" x="64" y="45">Trabaja con contexto</text>
-    <text class="txt" x="24" y="82">Tu repositorio queda montado</text>
-    <text class="txt" x="24" y="102">a tu medida. Desde la siguiente</text>
-    <text class="txt" x="24" y="122">sesión, Claude ya sabe por dónde</text>
-    <text class="txt" x="24" y="142">empezar.</text>
+  <g transform="translate(616 150)">
+    <rect width="246" height="200" rx="16" fill="#FFFFFF" stroke="#C2410C" stroke-width="1.5"/>
+    <circle cx="34" cy="36" r="15" fill="#C2410C"/>
+    <text class="num" x="34" y="41" text-anchor="middle">3</text>
+    <text class="paso" x="58" y="43">Investiga tu rol</text>
+    <text class="txt" x="20" y="78">En fuentes oficiales:</text>
+    <text class="txt" x="20" y="99">· responsabilidades</text>
+    <text class="txt" x="20" y="118">· obligaciones y normas</text>
+    <text class="txt" x="20" y="137">· tareas comunes del oficio</text>
+    <text class="txt" x="20" y="156">· programas que necesitas</text>
+    <text class="txt" x="20" y="182" style="font-weight:600;fill:#9A3412">→ lineamientos de tu espacio</text>
   </g>
 
-  <!-- Lo que obtienes -->
-  <text class="seccion" x="60" y="372">LO QUE QUEDA LISTO</text>
+  <path d="M866 250 H892" stroke="#C2410C" stroke-width="2.5" fill="none" marker-end="url(#flecha)"/>
 
-  <g transform="translate(60 390)">
-    <rect width="345" height="92" rx="14" fill="#FFFFFF" stroke="#E4DDD2"/>
-    <rect width="6" height="92" rx="3" fill="#C2410C"/>
-    <text class="tit" x="24" y="36">Carpetas a tu medida</text>
-    <text class="txt" x="24" y="62">Una estructura elegida según tu</text>
-    <text class="txt" x="24" y="80">objetivo, no una plantilla genérica.</text>
+  <!-- Paso 4 -->
+  <g transform="translate(894 150)">
+    <rect width="246" height="200" rx="16" fill="#FFFFFF" stroke="#E4DDD2"/>
+    <circle cx="34" cy="36" r="15" fill="#C2410C"/>
+    <text class="num" x="34" y="41" text-anchor="middle">4</text>
+    <text class="paso" x="58" y="43">Trabaja con todo</text>
+    <text class="txt" x="20" y="78">Claude sabe quién eres, qué</text>
+    <text class="txt" x="20" y="97">exige tu rol y dónde va cada</text>
+    <text class="txt" x="20" y="116">cosa, desde la siguiente</text>
+    <text class="txt" x="20" y="135">sesión.</text>
   </g>
-  <g transform="translate(427 390)">
-    <rect width="345" height="92" rx="14" fill="#FFFFFF" stroke="#E4DDD2"/>
-    <rect width="6" height="92" rx="3" fill="#C2410C"/>
-    <text class="tit" x="24" y="36">Claude te conoce</text>
-    <text class="txt" x="24" y="62">Tu perfil y tus reglas, presentes</text>
-    <text class="txt" x="24" y="80">en cada conversación.</text>
+
+  <!-- Lo que queda listo -->
+  <text class="seccion" x="60" y="400">LO QUE QUEDA LISTO</text>
+
+  <g transform="translate(60 418)">
+    <rect width="255" height="96" rx="14" fill="#FFFFFF" stroke="#E4DDD2"/>
+    <rect width="6" height="96" rx="3" fill="#C2410C"/>
+    <text class="tit" x="22" y="34">Carpetas a tu medida</text>
+    <text class="txt" x="22" y="60">Elegidas según tu objetivo,</text>
+    <text class="txt" x="22" y="79">no una plantilla genérica.</text>
   </g>
-  <g transform="translate(795 390)">
-    <rect width="345" height="92" rx="14" fill="#FFFFFF" stroke="#E4DDD2"/>
-    <rect width="6" height="92" rx="3" fill="#C2410C"/>
-    <text class="tit" x="24" y="36">Memoria de lo resuelto</text>
-    <text class="txt" x="24" y="62">Lo que ya se resolvió no se vuelve</text>
-    <text class="txt" x="24" y="80">a investigar desde cero.</text>
+  <g transform="translate(335 418)">
+    <rect width="255" height="96" rx="14" fill="#FFFFFF" stroke="#E4DDD2"/>
+    <rect width="6" height="96" rx="3" fill="#C2410C"/>
+    <text class="tit" x="22" y="34">Lineamientos del rol</text>
+    <text class="txt" x="22" y="60">Reglas con su porqué, que</text>
+    <text class="txt" x="22" y="79">Claude respeta en cada tarea.</text>
   </g>
-  <g transform="translate(60 498)">
-    <rect width="345" height="92" rx="14" fill="#FFFFFF" stroke="#E4DDD2"/>
-    <rect width="6" height="92" rx="3" fill="#C2410C"/>
-    <text class="tit" x="24" y="36">Bitácora de tu trabajo</text>
-    <text class="txt" x="24" y="62">Cada tarea con sus correcciones, para</text>
-    <text class="txt" x="24" y="80">que el error de ayer no se repita.</text>
+  <g transform="translate(610 418)">
+    <rect width="255" height="96" rx="14" fill="#FFFFFF" stroke="#E4DDD2"/>
+    <rect width="6" height="96" rx="3" fill="#C2410C"/>
+    <text class="tit" x="22" y="34">Claude te conoce</text>
+    <text class="txt" x="22" y="60">Tu perfil y tus reglas,</text>
+    <text class="txt" x="22" y="79">en cada conversación.</text>
   </g>
-  <g transform="translate(427 498)">
-    <rect width="345" height="92" rx="14" fill="#FFFFFF" stroke="#E4DDD2"/>
-    <rect width="6" height="92" rx="3" fill="#C2410C"/>
-    <text class="tit" x="24" y="36">Accesos seguros</text>
-    <text class="txt" x="24" y="62">Tus claves fuera de git y nunca</text>
-    <text class="txt" x="24" y="80">pegadas en el chat.</text>
+  <g transform="translate(885 418)">
+    <rect width="255" height="96" rx="14" fill="#FFFFFF" stroke="#E4DDD2"/>
+    <rect width="6" height="96" rx="3" fill="#C2410C"/>
+    <text class="tit" x="22" y="34">Memoria de lo resuelto</text>
+    <text class="txt" x="22" y="60">Lo que ya se resolvió no se</text>
+    <text class="txt" x="22" y="79">vuelve a investigar.</text>
   </g>
-  <g transform="translate(795 498)">
-    <rect width="345" height="92" rx="14" fill="#FFFFFF" stroke="#E4DDD2"/>
-    <rect width="6" height="92" rx="3" fill="#C2410C"/>
-    <text class="tit" x="24" y="36">Orden que se mantiene</text>
-    <text class="txt" x="24" y="62">Cada archivo en su lugar, y nada se</text>
-    <text class="txt" x="24" y="80">mueve sin tu sí.</text>
+  <g transform="translate(60 530)">
+    <rect width="255" height="96" rx="14" fill="#FFFFFF" stroke="#E4DDD2"/>
+    <rect width="6" height="96" rx="3" fill="#C2410C"/>
+    <text class="tit" x="22" y="34">Bitácora de tu trabajo</text>
+    <text class="txt" x="22" y="60">Cada corrección queda, para</text>
+    <text class="txt" x="22" y="79">que el error no se repita.</text>
+  </g>
+  <g transform="translate(335 530)">
+    <rect width="255" height="96" rx="14" fill="#FFFFFF" stroke="#E4DDD2"/>
+    <rect width="6" height="96" rx="3" fill="#C2410C"/>
+    <text class="tit" x="22" y="34">Programas listos</text>
+    <text class="txt" x="22" y="60">Te avisa si falta alguno y lo</text>
+    <text class="txt" x="22" y="79">instala solo con tu sí.</text>
+  </g>
+  <g transform="translate(610 530)">
+    <rect width="255" height="96" rx="14" fill="#FFFFFF" stroke="#E4DDD2"/>
+    <rect width="6" height="96" rx="3" fill="#C2410C"/>
+    <text class="tit" x="22" y="34">Accesos seguros</text>
+    <text class="txt" x="22" y="60">Tus claves fuera de git y</text>
+    <text class="txt" x="22" y="79">nunca pegadas en el chat.</text>
+  </g>
+  <g transform="translate(885 530)">
+    <rect width="255" height="96" rx="14" fill="#FFFFFF" stroke="#E4DDD2"/>
+    <rect width="6" height="96" rx="3" fill="#C2410C"/>
+    <text class="tit" x="22" y="34">Orden que se mantiene</text>
+    <text class="txt" x="22" y="60">Cada archivo en su lugar, y</text>
+    <text class="txt" x="22" y="79">nada se mueve sin tu sí.</text>
   </g>
 
   <!-- Ciclo de cada sesión -->
-  <g transform="translate(60 622)">
-    <rect width="1080" height="80" rx="16" fill="#1F2328"/>
-    <text class="seccion" x="32" y="33" style="fill:#FDBA74">EN CADA SESIÓN</text>
-    <text class="ciclo" x="32" y="60">Arranca con contexto</text>
-    <path d="M222 55 H262" stroke="#FDBA74" stroke-width="2" fill="none" marker-end="url(#flecha)"/>
-    <text class="ciclo" x="276" y="60">revisa lo que ya se resolvió</text>
-    <path d="M505 55 H545" stroke="#FDBA74" stroke-width="2" fill="none" marker-end="url(#flecha)"/>
-    <text class="ciclo" x="559" y="60">hace la tarea</text>
-    <path d="M686 55 H726" stroke="#FDBA74" stroke-width="2" fill="none" marker-end="url(#flecha)"/>
-    <text class="ciclo" x="740" y="60">guarda lo aprendido para la próxima</text>
+  <g transform="translate(60 664)">
+    <rect width="1080" height="110" rx="16" fill="#1F2328"/>
+    <text class="seccion" x="32" y="38" style="fill:#FDBA74">EN CADA SESIÓN</text>
+    <text class="ciclo" x="32" y="76">Arranca con contexto</text>
+    <path d="M222 71 H262" stroke="#FDBA74" stroke-width="2" fill="none" marker-end="url(#flecha)"/>
+    <text class="ciclo" x="276" y="76">revisa lo que ya se resolvió</text>
+    <path d="M505 71 H545" stroke="#FDBA74" stroke-width="2" fill="none" marker-end="url(#flecha)"/>
+    <text class="ciclo" x="559" y="76">hace la tarea</text>
+    <path d="M686 71 H726" stroke="#FDBA74" stroke-width="2" fill="none" marker-end="url(#flecha)"/>
+    <text class="ciclo" x="740" y="76">guarda lo aprendido para la próxima</text>
   </g>
 </svg>

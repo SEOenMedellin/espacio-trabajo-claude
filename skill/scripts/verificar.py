@@ -23,6 +23,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import bitacora  # noqa: E402
 import comun  # noqa: E402
+import programas  # noqa: E402
 
 PLANTILLA = comun.SKILL / "assets" / "plantilla"
 
@@ -99,16 +100,15 @@ def revisar(raiz: Path, cfg: dict) -> list[tuple[str, str, str]]:
          "" if (raiz / comun.ESTADO / "grafo.json").is_file() else "corre grafo.py --actualizar")
     if not cfg.get("investigacion_rol"):
         item("AVISO", "investigación del rol", "no se ha hecho: amplía el espacio con primeros-pasos")
-    for p in cfg.get("programas", []):
-        hay = comun.programa_disponible(p.get("comprobar", ""))
-        item("OK" if hay else "AVISO", f"programa {p.get('nombre')}",
-             "" if hay else "no está instalado (" + (p.get("instalar") or p.get("para", "")) + ")")
+    for p in programas.lista(cfg):
+        item("OK" if p["ok"] else "AVISO", f"programa {p['titulo']}",
+             "" if p["ok"] else "no está instalado: programas.py --instalar " + p["nombre"]
+             if p["comando"] else "no está instalado (" + (p["descarga"] or p["para"]) + ")")
     return res
 
 
 def programas_faltantes(cfg: dict) -> list[str]:
-    return [p.get("nombre", "") for p in cfg.get("programas", [])
-            if not comun.programa_disponible(p.get("comprobar", ""))]
+    return programas.faltantes(cfg)
 
 
 def main(argv=None) -> int:

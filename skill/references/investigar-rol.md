@@ -120,7 +120,9 @@ En `respuestas-espacio.json`, bloque `investigacion_rol`:
   no se investigó. Cada fuente lleva `titulo`, `url` y `consultado`.
 - Fechas en formato `DD-mmm-YYYY`.
 
-Los programas no van dentro de este bloque sino en `programas`, en la raíz de
+Python, Node.js y Playwright son la base de todo espacio y no se listan:
+`programas.py` ya los revisa. Los programas que el rol sume no van dentro de
+este bloque sino en `programas`, en la raíz de
 `respuestas-espacio.json` (esquema en `references/entrevista.md` § 5), porque
 `verificar.py` y el aviso de inicio los comprueban en cada sesión. Solo se
 listan los que una tarea confirmada necesite, cada uno con el comando que

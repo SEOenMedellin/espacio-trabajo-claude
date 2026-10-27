@@ -69,8 +69,8 @@ primeros-pasos **investiga a fondo tu rol** en fuentes oficiales:
   pesan cuando faltan.
 - **Tareas comunes de tu rol:** te pregunta por las que no mencionaste, y solo
   se suman las que de verdad haces.
-- **Programas que necesitas:** qué debe estar instalado en tu equipo para
-  trabajar, cuáles ya tienes y cuáles faltan. Te ofrece instalarlos, uno por
+- **Programas que necesitas:** además de Python, Node.js y Playwright, que
+  vienen de base, los que pida tu rol; cuáles ya tienes y cuáles faltan. Te ofrece instalarlos, uno por
   uno y con tu permiso, y te avisa al empezar cada sesión si falta alguno.
 
 De ahí salen **los lineamientos de tu espacio**: reglas con su porqué que
@@ -110,8 +110,11 @@ Esto es lo que lo hace distinto: **mejora cuanto más lo usas.**
 ## Lo que necesitas
 
 - [Claude Code](https://claude.com/claude-code).
-- [Python 3.10 o superior](https://www.python.org/downloads/). No hay que
-  instalar nada más; el instalador te avisa si falta.
+- [Python 3.10 o superior](https://www.python.org/downloads/),
+  [Node.js 18 o superior](https://nodejs.org/) y
+  [Playwright](https://playwright.dev/). No tienes que buscarlos: el instalador
+  revisa cuáles faltan y te ofrece instalarlos (con winget en Windows,
+  Homebrew en Mac, apt o dnf en Linux). Nada se instala sin que digas que sí.
 
 ## Preguntas frecuentes
 

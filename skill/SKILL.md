@@ -31,7 +31,7 @@ va cada cosa, qué se resolvió antes y cómo aprender de cada tarea.
 | `espacio.json` | La configuración: perfil, arquitectura y rutas de cada rol. Todo lo demás se deriva de aquí |
 | Investigación del rol | Responsabilidades, obligaciones, tareas comunes y programas del oficio, con fuentes; de ella salen los lineamientos (`references/investigar-rol.md`) |
 | Arquitectura de carpetas | Elegida según el objetivo y los lineamientos del rol (`references/arquitecturas.md`) |
-| Programas para trabajar | Lo que debe estar instalado en el equipo; el aviso de inicio dice cuáles faltan y se instalan solo con confirmación |
+| Programas para trabajar | Python, Node.js y Playwright siempre, más los que pida el rol; `programas.py` los comprueba e instala, el aviso de inicio dice cuáles faltan y nada se instala sin confirmación |
 | `CLAUDE.md` (bloque entre marcadores) | Perfil, mapa de carpetas y protocolo de trabajo; respeta lo que ya hubiera |
 | `docs/espacio-de-trabajo/` | Convenciones: carpetas, bitácoras, memoria, grafo, investigación, crear skills, credenciales, y el perfil |
 | Bitácora de trabajo | Una entrada por tarea del rol, con patrones, conocimiento adyacente y correcciones. Nunca registra configuración ni nada del sistema |
@@ -92,6 +92,20 @@ python <skill>/scripts/verificar.py
 Código 2 = sin montar (paso 2). Código 1 = Reparar. Código 0 = ya está
 montado: pregunta si quiere ampliarlo o si solo quería empezar a trabajar.
 
+Revisa también los programas de base para trabajar (Python, Node.js y
+Playwright):
+
+```bash
+python <skill>/scripts/programas.py
+```
+
+Si falta alguno, díselo en una frase y pregunta con `AskUserQuestion`
+(«Sí, instálalos» · «Ahora no»). Con un sí, uno por uno:
+`python <skill>/scripts/programas.py --instalar <nombre>` (Node.js antes que
+Playwright). Si la instalación pide permisos de administrador o una ventana,
+pásale la orden (`programas.py --comando <nombre>`) para que la corra con
+`! <orden>`. Un programa que falte no detiene el montaje.
+
 ## Paso 2 — Mirar el repositorio
 
 Antes de preguntar, lista la raíz y lee lo que ya haya: `README`, `CLAUDE.md`,
@@ -119,9 +133,9 @@ Anuncia en una frase que lo vas a hacer; no hace falta pedir permiso. Si no
 hay internet o la persona no quiere, sigue con la entrevista y anota el motivo
 en `limitacion`.
 
-Para cada programa, comprueba si ya está instalado corriendo su comando de
-versión (`<programa> --version` o el que corresponda): así la propuesta dice
-cuáles faltan.
+Python, Node.js y Playwright ya los cubre `programas.py`. Para cada programa
+adicional que pida el rol, comprueba si ya está instalado corriendo su comando
+de versión: así la propuesta dice cuáles faltan.
 
 ## Paso 5 — Decidir la arquitectura
 
@@ -195,11 +209,12 @@ hooks se activan desde la próxima sesión de Claude Code.
 Ofrece, en una sola `AskUserQuestion` con selección múltiple, lo que más
 valor le da al arrancar (todo opcional):
 
-- **Instalar los programas que faltan** (solo si `verificar.py` marca
-  alguno): uno por uno, desde la fuente oficial o el gestor de paquetes del
-  sistema, diciendo antes qué se instala y para qué. Si un instalador pide
-  permisos de administrador, se lo explicas y lo corre la persona
-  (`! <comando>`). Al final, `verificar.py` para confirmarlo.
+- **Instalar los programas que faltan** (solo si `programas.py` marca
+  alguno): uno por uno con `programas.py --instalar <nombre>` para los de
+  base, y desde la fuente oficial para los del rol, diciendo antes qué se
+  instala y para qué. Si un instalador pide permisos de administrador, se lo
+  explicas y lo corre la persona (`! <orden>`). Al final, `programas.py` para
+  confirmarlo.
 - **Traer los documentos del proyecto** a la carpeta de contexto (briefs,
   manuales, contratos, datos de ejemplo). Leerlos completos y resumir en una
   línea qué aporta cada uno.
@@ -281,6 +296,7 @@ revisa la copia y vuelve a aplicar su cambio.
 |---|---|
 | `montar.py --respuestas r.json [--dry-run]` | Montar o ampliar (`--actualizar`, `--json`, `--raiz`) |
 | `verificar.py` | Estado: OK, FALTA, DIVERGE, AVISO (`--json`) |
+| `programas.py` | Programas para trabajar: estado, `--comando <nombre>` y `--instalar <nombre>` (solo con el sí de la persona) |
 | `inicio.py` | Hook SessionStart: última sesión, peticiones abiertas, skills y anotaciones |
 | `cierre_check.py` | Hook Stop: recuerda el protocolo de cierre una vez por sesión |
 | `orden_check.py` | Hook PreToolUse: niega escrituras fuera de la arquitectura y pide confirmación para mover |

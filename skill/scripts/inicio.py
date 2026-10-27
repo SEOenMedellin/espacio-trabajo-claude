@@ -124,7 +124,7 @@ def main() -> int:
     faltan = verificar.programas_faltantes(cfg)
     if faltan:
         print("Programas para trabajar que no están instalados: " + ", ".join(faltan) + ". Antes de una tarea "
-              "que los necesite, ofrécele a la persona instalarlos (perfil.md dice cómo) y espera su sí.")
+              "que los necesite, ofrécele a la persona instalarlos (programas.py --instalar <nombre>) y espera su sí.")
     if not cfg.get("investigacion_rol"):
         print("El rol de la persona todavía no se ha investigado: ofrécele ampliar el espacio con primeros-pasos "
               "para sumar los lineamientos del rol.")

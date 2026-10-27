@@ -69,17 +69,70 @@
         Write-Host ''
         Write-Host "Listo: primeros-pasos quedó $accion en $destino" -ForegroundColor Green
 
-        $py = $null
-        foreach ($c in @('python', 'python3', 'py')) {
-            if (Get-Command $c -ErrorAction SilentlyContinue) {
-                & $c -c 'import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)' 2>$null
-                if ($LASTEXITCODE -eq 0) { $py = $c; break }
+        # ---- Programas para trabajar: Python, Node.js y Playwright
+        function Refrescar-Path {
+            $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' +
+                        [Environment]::GetEnvironmentVariable('Path', 'User')
+        }
+        function Tiene-Python {
+            foreach ($c in @('python', 'python3', 'py')) {
+                $cmd = Get-Command $c -ErrorAction SilentlyContinue
+                if ($cmd -and $cmd.Source -notlike '*WindowsApps*') {
+                    & $c -c 'import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)' 2>$null
+                    if ($LASTEXITCODE -eq 0) { return $true }
+                }
             }
+            return $false
         }
-        if (-not $py) {
+        function Tiene-Node {
+            if (-not (Get-Command node -ErrorAction SilentlyContinue)) { return $false }
+            $v = (& node --version) -replace '^v(\d+).*', '$1'
+            return ([int]$v -ge 18)
+        }
+        function Tiene-Playwright { return [bool](Get-Command playwright -ErrorAction SilentlyContinue) }
+
+        $hayWinget = [bool](Get-Command winget -ErrorAction SilentlyContinue)
+        $programas = @(
+            @{ nombre = 'python'; prueba = { Tiene-Python }; descarga = 'https://www.python.org/downloads/'
+               orden = $(if ($hayWinget) { 'winget install -e --id Python.Python.3.12 --accept-package-agreements --accept-source-agreements' }) },
+            @{ nombre = 'node'; prueba = { Tiene-Node }; descarga = 'https://nodejs.org/'
+               orden = $(if ($hayWinget) { 'winget install -e --id OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements' }) },
+            @{ nombre = 'playwright'; prueba = { Tiene-Playwright }; descarga = 'https://playwright.dev/docs/intro'
+               orden = 'npm install -g playwright; if ($?) { npx playwright install chromium }' }
+        )
+        $interactivo = (-not $env:PRIMEROS_PASOS_SIN_PROGRAMAS) -and (-not [Console]::IsInputRedirected) -and
+                       [Environment]::UserInteractive
+
+        Write-Host ''
+        Write-Host 'Programas para trabajar:'
+        $pendientes = @()
+        foreach ($p in $programas) {
+            if (& $p.prueba) { Write-Host "  OK     $($p.nombre)"; continue }
+            Write-Host "  FALTA  $($p.nombre)" -ForegroundColor Yellow
+            $orden = $p.orden
+            if ($p.nombre -eq 'playwright' -and -not (Tiene-Node)) { $orden = $null }
+            if ($orden -and $interactivo) {
+                $r = Read-Host "  ¿Instalo $($p.nombre) ahora? Se ejecutará: $orden [S/n]"
+                if ($r -notmatch '^(n|no)$') {
+                    try { Invoke-Expression $orden } catch { }
+                    Refrescar-Path
+                    if (& $p.prueba) { Write-Host "  OK     $($p.nombre) instalado" -ForegroundColor Green; continue }
+                    Write-Host "  No se pudo instalar $($p.nombre)." -ForegroundColor Yellow
+                }
+            }
+            $pendientes += $p
+        }
+        if ($pendientes.Count -gt 0) {
             Write-Host ''
-            Write-Host 'Ojo: falta Python 3.10 o superior. Instálalo desde https://www.python.org/downloads/ antes de empezar.' -ForegroundColor Yellow
+            Write-Host 'Quedan por instalar:' -ForegroundColor Yellow
+            foreach ($p in $pendientes) {
+                $o = $p.orden
+                if ($p.nombre -eq 'playwright' -and -not (Tiene-Node)) { $o = "$($p.orden)  (después de Node.js)" }
+                if ($o) { Write-Host "  $($p.nombre): $o" } else { Write-Host "  $($p.nombre): descárgalo de $($p.descarga)" }
+            }
+            Write-Host '  Después de instalar, cierra y vuelve a abrir la terminal.'
         }
+
         if (-not (Test-Path (Join-Path $destinoRepo '.git'))) {
             Write-Host 'Ojo: esta carpeta no es un repositorio git. Funciona igual, pero te conviene versionarla (git init).' -ForegroundColor Yellow
         }

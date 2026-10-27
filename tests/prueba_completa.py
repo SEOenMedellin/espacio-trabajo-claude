@@ -131,6 +131,14 @@ for f in ("CLAUDE.md", "docs/espacio-de-trabajo/perfil.md"):
         fallos.append(f"{f} no lleva los lineamientos del rol")
 if "Programa ausente" not in (A / "docs/espacio-de-trabajo/perfil.md").read_text(encoding="utf-8"):
     fallos.append("perfil.md no lista los programas")
+r = run(A, ["programas.py", "--json"])
+nombres = [x["nombre"] for x in json.loads(r.stdout or "[]")]
+if nombres[:3] != ["python", "node", "playwright"] or "Programa ausente" not in nombres:
+    fallos.append(f"programas.py no lista los de base y los del espacio: {nombres}")
+if r.returncode != 1:
+    fallos.append("programas.py no avisa con código 1 cuando falta un programa")
+run(A, ["programas.py", "--comando", "no-existe"], esperado=2)
+run(A, ["programas.py", "--comando", "python"], esperado=0)
 if "Programa ausente" not in run(A, ["inicio.py"], stdin="{}").stdout:
     fallos.append("el aviso de inicio no dice qué programas faltan")
 r = run(A, ["montar.py"], esperado=0)
@@ -287,12 +295,14 @@ if ps:
 for nombre, cmd in instaladores:
     d = BASE / ("inst-" + nombre.replace(".", "-"))
     d.mkdir()
-    env = dict(os.environ, PRIMEROS_PASOS_ORIGEN=str(RAIZ))
+    env = dict(os.environ, PRIMEROS_PASOS_ORIGEN=str(RAIZ), PRIMEROS_PASOS_SIN_PROGRAMAS="1")
     for vuelta, palabra in [(1, "instalado"), (2, "actualizado")]:
         r = subprocess.run(cmd, cwd=d, capture_output=True, text=True, encoding="utf-8", errors="replace", env=env)
         log(f"\n$ {nombre} (vuelta {vuelta}) → {r.returncode}\n{(r.stdout + r.stderr).strip()[:800]}")
         if palabra not in r.stdout or not (d / ".claude/skills/primeros-pasos/SKILL.md").is_file():
             fallos.append(f"{nombre} vuelta {vuelta}: no quedó {palabra}")
+        if not all(x in r.stdout for x in ("Programas para trabajar", "python", "node", "playwright")):
+            fallos.append(f"{nombre} no revisó Python, Node.js y Playwright")
     if (d / ".claude/skills/primeros-pasos.anterior").exists():
         fallos.append(f"{nombre} dejó la copia anterior")
     if nombre == "install.sh":  # en la carpeta personal no instala
