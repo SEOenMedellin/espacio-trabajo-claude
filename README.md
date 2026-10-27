@@ -1,101 +1,134 @@
 # primeros-pasos
 
-Skill para [Claude Code](https://claude.com/claude-code) que prepara el espacio
-de trabajo de cualquier persona en cualquier repositorio. Entrevista a quien
-va a trabajar (cargo, proyecto y objetivo, conocimientos que Claude debe tener,
-tareas habituales, herramientas), **decide qué arquitectura de carpetas
-necesita según su objetivo** y la monta con todo lo que hace falta para que
-Claude trabaje con contexto y aprenda de cada tarea.
+**Deja de explicarle a Claude quién eres cada vez que abres una conversación.**
 
-No asume área, empresa ni herramienta: todo sale de la entrevista.
+Un skill para [Claude Code](https://claude.com/claude-code) que en unos
+minutos convierte cualquier carpeta en tu espacio de trabajo: ordenado a tu
+medida, con Claude sabiendo qué haces y para qué, y con una memoria que crece
+con cada tarea.
 
-## Qué deja montado
+![Cómo funciona primeros-pasos](docs/como-funciona.svg)
 
-| Pieza | Para qué |
-|---|---|
-| Arquitectura de carpetas | Una de seis bases (entregables a clientes, software, datos, contenido, gestión, investigación), ajustada a las tareas de la persona y a lo que ya existe en el repositorio |
-| `CLAUDE.md` | Perfil, mapa de carpetas y protocolo de trabajo, en un bloque propio que respeta lo que ya hubiera |
-| `espacio.json` | La configuración: perfil, arquitectura y rutas. Todo lo demás se deriva de aquí |
-| Bitácora de trabajo | Una entrada por tarea del rol, con patrones, conocimiento adyacente y correcciones |
-| Memoria | Un nodo por cosa resuelta (global y por proyecto), con índice regenerable |
-| Grafo de orquestación | `grafo.py --plan "<petición>"` dice qué skills, memoria, contexto y tareas previas abrir antes de actuar |
-| Investigación profunda | Protocolo para tareas sin antecedentes: desglose, fuentes oficiales, supuestos explícitos, resultado reutilizable |
-| Creación de skills | Los procesos que se repiten o se corrigen se proponen como skills nuevos |
-| Credenciales | `credenciales/.env` fuera de git; los secretos nunca pasan por el chat |
-| Hooks | Al iniciar: última sesión, tareas abiertas, catálogo de skills, memoria y orden. Al escribir: bloquea archivos fuera de la arquitectura. Al mover: pide confirmación. Al cerrar: recuerda registrar la tarea |
+## Instálalo en una línea
 
-## Reglas que el espacio hace cumplir
+Abre una terminal **en la carpeta de tu proyecto** y pega el comando de tu
+sistema.
 
-- **Solo se documenta el trabajo del rol.** La bitácora, la memoria y el grafo
-  nunca registran configuración, carpetas, credenciales, skills ni nada del
-  propio sistema.
-- **El repositorio no se deforma.** Crear un archivo fuera del mapa se bloquea
-  y el aviso dice dónde va; `ordenar.py` propone a dónde va cada archivo según
-  su contenido y uso.
-- **Mover siempre se confirma.** Ningún archivo se mueve ni se renombra sin un
-  sí explícito de la persona.
-- **Rutas cortas.** Como mucho 6 niveles, 150 caracteres dentro del repositorio
-  y nombres de 60, para que nada falle en Windows ni en macOS.
-- **Fechas** en formato `10-oct-2026`.
-
-## Requisitos
-
-- Claude Code.
-- Python 3.10 o superior (solo biblioteca estándar: no hay nada que instalar con pip).
-
-## Instalación
-
-Copia la carpeta `skill/` dentro del repositorio donde vas a trabajar, con el
-nombre `primeros-pasos`:
+**Mac y Linux**
 
 ```bash
-# desde la raíz de tu repositorio
-mkdir -p .claude/skills
-cp -r /ruta/a/espacio-trabajo-claude/skill .claude/skills/primeros-pasos
+curl -fsSL https://raw.githubusercontent.com/davidortiz-ops/espacio-trabajo-claude/main/install.sh | bash
 ```
 
-En Windows (PowerShell):
+**Windows (PowerShell)**
 
 ```powershell
-New-Item -ItemType Directory -Force .claude\skills | Out-Null
-Copy-Item -Recurse C:\ruta\a\espacio-trabajo-claude\skill .claude\skills\primeros-pasos
+irm https://raw.githubusercontent.com/davidortiz-ops/espacio-trabajo-claude/main/install.ps1 | iex
 ```
 
-Abre Claude Code en ese repositorio y escribe **«empezar»**. La entrevista
-toma unos minutos y no se escribe nada hasta que confirmes la propuesta.
+Luego abre Claude Code en esa carpeta y escribe **«empezar»**. Eso es todo.
 
-> Se instala por repositorio, no en `~/.claude/skills`: los hooks guardan la
-> ruta del skill, y cada espacio de trabajo debe tener la suya.
+## Por qué vas a querer tenerlo
 
-## Uso después del montaje
+Claude es muy capaz, pero empieza cada conversación sin saber nada de ti. Le
+repites tu contexto, le corriges lo mismo que ayer, guarda archivos donde no
+van y lo que resolvió la semana pasada se pierde. **primeros-pasos acaba con
+eso.**
 
-| Pide… | Qué pasa |
+| Sin primeros-pasos | Con primeros-pasos |
 |---|---|
-| «empezar» o «primeros pasos» | Entrevista y montaje (o revisión, si ya está montado) |
-| «tengo un proyecto nuevo», «cambió mi cargo», «ahora también hago…» | Amplía el espacio: suma carpetas y proyectos sin quitar nada |
-| «ordena mis carpetas» | Plan de reorganización; solo se mueve lo que apruebes |
-| «repara mi espacio» | Repone piezas que falten (por ejemplo, hooks borrados por otra herramienta) |
+| Cada conversación empieza de cero | Claude arranca sabiendo tu cargo, tu objetivo y cómo trabajas |
+| Explicas lo mismo una y otra vez | Lo dices una vez en la entrevista y queda escrito |
+| Archivos regados por todas partes | Cada cosa tiene su lugar, y Claude lo respeta |
+| Lo que ya se resolvió se vuelve a investigar | Claude revisa primero lo que ya se sabe |
+| El mismo error vuelve a aparecer | Cada corrección queda registrada para la próxima |
+| Claves y contraseñas pegadas en el chat | Tus accesos quedan guardados aparte, nunca en la conversación |
 
-## Estructura de este repositorio
+## Hecho para tu trabajo, no para uno genérico
+
+No es una plantilla. primeros-pasos te hace una entrevista corta (tu cargo, en
+qué proyecto estás, qué quieres lograr, qué tareas haces y con qué
+herramientas) y a partir de ahí **decide qué estructura te sirve**:
+
+- ¿Entregas trabajo a clientes? Una carpeta por cliente, con su historial.
+- ¿Desarrollas software? Tu código intacto y el contexto al lado.
+- ¿Analizas datos? Datos crudos, procesados y reportes separados.
+- ¿Creas contenido, gestionas equipos o investigas? También hay una base para eso.
+
+Si ya tienes archivos, se respetan. Si mañana cambian tus tareas o llega un
+proyecto nuevo, el espacio crece contigo sin perder nada.
+
+## Un espacio que aprende
+
+Esto es lo que lo hace distinto: **mejora cuanto más lo usas.**
+
+- **Memoria.** Cada cosa que se resuelve queda guardada. La próxima vez,
+  Claude la encuentra antes de empezar a buscar.
+- **Bitácora.** Cada tarea queda registrada con lo que funcionó y lo que hubo
+  que corregir.
+- **Nuevas habilidades.** Cuando una tarea se repite, Claude te propone
+  convertirla en un skill propio para hacerla igual de bien cada vez.
+- **Investigación con método.** Ante algo nuevo, Claude separa el problema,
+  busca fuentes confiables y deja el resultado listo para reutilizarlo.
+
+## Tú tienes el control
+
+- **Nada se crea sin tu visto bueno.** Primero ves la propuesta, después se monta.
+- **Nada se mueve ni se renombra sin un sí explícito.**
+- **Nada se borra ni se sobrescribe.** Lo que ya tenías sigue ahí.
+- **Tus claves no pasan por el chat.** Se guardan en un archivo fuera de git.
+- **Todo queda en tu equipo.** No hay servidores, cuentas ni nada que pagar.
+
+## Qué le puedes pedir
+
+| Escribe… | Y pasa esto |
+|---|---|
+| «empezar» | Entrevista y montaje de tu espacio |
+| «tengo un proyecto nuevo» o «ahora también hago…» | Tu espacio se amplía sin perder nada |
+| «ordena mis carpetas» | Te propone dónde va cada archivo; solo se mueve lo que apruebes |
+| «repara mi espacio» | Repone lo que falte si algo se dañó |
+
+## Lo que necesitas
+
+- [Claude Code](https://claude.com/claude-code).
+- [Python 3.10 o superior](https://www.python.org/downloads/). No hay que
+  instalar nada más; el instalador te avisa si falta.
+
+## Preguntas frecuentes
+
+**¿Sirve para mi área?**
+Sí. No asume empresa, área ni herramienta: todo sale de la entrevista. Funciona
+igual para quien hace consultoría, desarrollo, análisis, contenido o gestión.
+
+**¿Lo instalo una vez para todos mis proyectos?**
+Se instala por proyecto: cada carpeta tiene su propio espacio. Ejecuta el
+comando de instalación dentro de cada proyecto donde lo quieras.
+
+**¿Cómo lo actualizo?**
+Vuelve a ejecutar el mismo comando de instalación. Se reemplaza el skill y tu
+trabajo (carpetas, memoria, bitácora) no se toca.
+
+**¿Cómo lo quito?**
+Borra la carpeta `.claude/skills/primeros-pasos` y las entradas de `hooks` que
+apuntan a ella en `.claude/settings.json`. Tus carpetas y notas se quedan.
+
+**Prefiero no ejecutar un script descargado.**
+Es comprensible. Revisa antes [`install.sh`](install.sh) o
+[`install.ps1`](install.ps1), o instálalo a mano: copia la carpeta `skill/` de
+este repositorio en `.claude/skills/primeros-pasos` dentro de tu proyecto.
+
+## Para quien quiera contribuir
 
 ```
-skill/                    el skill (lo que se copia a .claude/skills/primeros-pasos/)
-  SKILL.md                instrucciones para Claude
-  references/             entrevista y catálogo de arquitecturas
-  assets/plantilla/       CLAUDE.md, convenciones, bitácora, hooks que se renderizan
-  scripts/                montar, verificar, inicio, cierre, orden, ordenar, grafo, bitácora, memoria
+skill/                    el skill: lo que se instala en .claude/skills/primeros-pasos/
+install.sh, install.ps1   instaladores de una línea
+docs/                     material de la documentación
 tests/prueba_completa.py  prueba de punta a punta en carpetas temporales
 ```
 
-## Pruebas
-
 ```bash
-python tests/prueba_completa.py -q
+python tests/prueba_completa.py -q   # debe terminar con «ninguno»
 ```
-
-Monta dos espacios temporales (un proyecto con código previo y varios
-proyectos) y recorre validación, montaje, idempotencia, memoria, bitácora,
-grafo, los tres hooks, los límites de ruta, la reorganización y la ampliación.
 
 ## Licencia
 

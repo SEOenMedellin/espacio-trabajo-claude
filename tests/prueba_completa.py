@@ -217,6 +217,47 @@ if cfgB["proyectos"]["lista"] != ["cliente-a", "cliente-b", "cliente-c"]:
 if not (B / "proyectos/cliente-c/bitacora-peticiones.md").is_file():
     fallos.append("ampliar no creó la bitácora del proyecto nuevo")
 
+# ---------- Instaladores de una línea (desde copia local)
+RAIZ = SKILL.parent
+
+
+def bash():
+    if os.name == "nt":  # el bash.exe de System32 es WSL: usar el de Git
+        git = shutil.which("git")
+        for base in (Path(git).parents[1:3] if git else []):
+            for c in (base / "bin/bash.exe", base / "usr/bin/bash.exe"):
+                if c.is_file():
+                    return str(c)
+        return None
+    return shutil.which("bash")
+
+
+instaladores = []
+if bash():
+    instaladores.append(("install.sh", [bash(), str(RAIZ / "install.sh")]))
+ps = shutil.which("pwsh") or shutil.which("powershell")
+if ps:
+    instaladores.append(("install.ps1", [ps, "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command",
+                                         f"Get-Content -Raw -Encoding UTF8 '{RAIZ / 'install.ps1'}' | Invoke-Expression"]))
+for nombre, cmd in instaladores:
+    d = BASE / ("inst-" + nombre.replace(".", "-"))
+    d.mkdir()
+    env = dict(os.environ, PRIMEROS_PASOS_ORIGEN=str(RAIZ))
+    for vuelta, palabra in [(1, "instalado"), (2, "actualizado")]:
+        r = subprocess.run(cmd, cwd=d, capture_output=True, text=True, encoding="utf-8", errors="replace", env=env)
+        log(f"\n$ {nombre} (vuelta {vuelta}) → {r.returncode}\n{(r.stdout + r.stderr).strip()[:800]}")
+        if palabra not in r.stdout or not (d / ".claude/skills/primeros-pasos/SKILL.md").is_file():
+            fallos.append(f"{nombre} vuelta {vuelta}: no quedó {palabra}")
+    if (d / ".claude/skills/primeros-pasos.anterior").exists():
+        fallos.append(f"{nombre} dejó la copia anterior")
+    if nombre == "install.sh":  # en la carpeta personal no instala
+        r = subprocess.run(cmd, cwd=d, capture_output=True, text=True, encoding="utf-8", errors="replace",
+                           env=dict(env, HOME=str(d)))
+        if r.returncode == 0:
+            fallos.append("install.sh instaló en la carpeta personal")
+if not instaladores:
+    log("\n(sin bash ni PowerShell: no se prueban los instaladores)")
+
 shutil.rmtree(BASE, ignore_errors=True)
 print("\n=== FALLOS ===\n" + ("\n".join(fallos) or "ninguno"))
 sys.exit(1 if fallos else 0)
