@@ -59,6 +59,28 @@ herramientas) y a partir de ahí **decide qué estructura te sirve**:
 Si ya tienes archivos, se respetan. Si mañana cambian tus tareas o llega un
 proyecto nuevo, el espacio crece contigo sin perder nada.
 
+## ¿Ya tienes habilidades instaladas? Las aprovecha
+
+Si tu repositorio no está en blanco, primeros-pasos **revisa todo lo que ya
+tiene** antes de proponerte nada: habilidades (skills), comandos, reglas y
+conexiones.
+
+- **Las entiende y las aprovecha.** Sabe qué hace cada una y qué tareas tuyas
+  cubre. Esas tareas siguen usando tu habilidad; no te duplica nada.
+- **Comprueba lo que saben.** Las normas, versiones y cifras que usan se
+  validan en fuentes oficiales, y lo que esté desactualizado se te avisa.
+- **Te cuida.** Te avisa si alguna guarda una contraseña a la vista, envía
+  información fuera de tu equipo, puede borrar trabajo, se contradice con otra
+  o guarda archivos fuera de tu orden.
+- **Lo arregla contigo.** Te propone cada corrección en sencillo y solo la
+  aplica si dices que sí, con copia de seguridad antes.
+- **Sigue atento.** Si mañana instalas una habilidad nueva o cambia alguna,
+  te lo dice al empezar la sesión y la revisa. También puedes pedirlo:
+  «revisa mis skills».
+
+Todo lo mecánico lo hacen sus propios scripts, así que es rápido y gasta
+poco: Claude solo dedica su criterio a lo que depende de tu rol.
+
 ## Conoce tu oficio antes de organizarte
 
 Lo que cuentas en la entrevista es solo una parte. Antes de proponerte nada,
@@ -149,6 +171,7 @@ Esto es lo que lo hace distinto: **mejora cuanto más lo usas.**
 | «empezar» | Entrevista y montaje de tu espacio |
 | `/<tu-tarea>` | Tu tarea habitual, siempre con los mismos pasos |
 | «sigamos» | Completa lo siguiente de tu lista de arranque |
+| «revisa mis skills» | Revisa, valida y adapta las habilidades que ya tienes |
 | «¿cómo me fue esta semana?» | Tu resumen: tareas, tiempo ahorrado y lo aprendido |
 | «tengo un proyecto nuevo» o «ahora también hago…» | Tu espacio se amplía sin perder nada |
 | «ordena mis carpetas» | Te propone dónde va cada archivo; solo se mueve lo que apruebes |

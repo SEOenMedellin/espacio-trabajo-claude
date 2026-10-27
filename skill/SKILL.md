@@ -40,6 +40,7 @@ va cada cosa, qué se resolvió antes y cómo aprender de cada tarea.
 | Memoria (global y por proyecto) | Un nodo por cosa resuelta, con índice regenerable |
 | Grafo de orquestación | `grafo.py --plan` dice qué skills, memoria y contexto abrir antes de cada tarea |
 | `credenciales/` | `.env` fuera de git y `.env.example` con los accesos previstos |
+| Revisión de lo existente | Inventario y auditoría de los skills, reglas, hooks y MCP que ya tenía el repositorio; su conocimiento validado va al contexto y las correcciones se aplican con confirmación |
 | Activación | `activar.py` (hook `UserPromptSubmit`, registrado ya por el instalador): si el mensaje es «empezar», «iniciar», «configurar» o equivalente, le indica a Claude que invoque este skill |
 | Hooks | `SessionStart`: última sesión, peticiones abiertas, catálogo de skills, anotaciones y orden. `PreToolUse`: bloquea archivos fuera de la arquitectura y pide confirmación para mover. `Stop`: recuerda el cierre |
 | Orden | `ordenar.py` propone a dónde va cada archivo según su contenido y uso; mueve solo lo que la persona confirme |
@@ -75,6 +76,7 @@ remotos de git ni publica nada fuera del repositorio.
 | Situación | Ir a |
 |---|---|
 | No hay `espacio.json` en la raíz | Montaje completo, pasos 1 a 9 |
+| Hay skills nuevos o cambiados sin revisar, o la persona pide «revisa mis skills» | `references/skills-existentes.md`, y luego Ampliar con el bloque `skills_existentes` |
 | Hay `espacio.json` y la persona trae algo nuevo (proyecto, cargo, tareas) | Ampliar |
 | El aviso de inicio o `verificar.py` dice que faltan piezas | Reparar |
 | Hay una versión nueva de este skill | Actualizar |
@@ -120,6 +122,28 @@ Antes de preguntar, lista la raíz y lee lo que ya haya: `README`, `CLAUDE.md`,
 escrito y para el paso 4 de `references/arquitecturas.md` (adoptar lo que
 existe, no mover nada).
 
+Luego, el inventario de lo que ya trae:
+
+```bash
+python <skill>/scripts/inventario.py
+```
+
+Si hay skills, la revisión es obligatoria (`montar.py` no acepta el montaje
+sin ella), pero casi toda la hace un script. Después de la entrevista, con
+`respuestas-espacio.json` ya escrito:
+
+```bash
+python <skill>/scripts/revisar.py --borrador     # arma la revisión y la deja en las respuestas
+python <skill>/scripts/revisar.py --pendientes   # lo único que hay que validar buscando
+```
+
+`--borrador` audita, extrae qué hace cada skill, qué tareas cubre, sus reglas,
+los problemas y contradicciones, y los datos que conviene validar. A ti te
+toca solo lo que depende del rol: validar en fuentes oficiales los datos de
+`--pendientes` (junto con la investigación del rol, paso 4), confirmar los
+hallazgos dudosos y decidir con la persona. Detalle en
+`references/skills-existentes.md`.
+
 ## Paso 3 — Entrevista
 
 Abre con una frase: *«Voy a preparar tu espacio de trabajo. Son unas pocas
@@ -163,7 +187,14 @@ python <skill>/scripts/montar.py --respuestas respuestas-espacio.json --dry-run
 ```
 
 Código 2: corrige lo que diga la validación (si es un formato, tú; si falta
-un dato, pregúntalo) y repite. Código 0: muéstrale la propuesta en sencillo:
+un dato, pregúntalo) y repite. Código 0: la propuesta en sencillo la escribe
+un script; muéstrasela tal cual, sin reescribirla:
+
+```bash
+python <skill>/scripts/propuesta.py
+```
+
+Incluye esto (referencia de lo que genera):
 
 > Así va a quedar tu espacio para **Tablero logístico**:
 > - **Tus carpetas** (porque tu trabajo es convertir exportes del ERP en
@@ -175,6 +206,9 @@ un dato, pregúntalo) y repite. Código 0: muéstrale la propuesta en sencillo:
 >   fuentes) y las reglas que salen de ahí para tu espacio. *«Es habitual en
 >   tu rol hacer X; ¿también lo haces?»* para cada tarea común que no
 >   mencionó: solo se suman las que confirme.
+> - **Lo que ya tenías** (si el repositorio traía skills): qué hace cada uno,
+>   qué conocimiento quedó validado y qué no, y los problemas encontrados
+>   —primero los graves— con lo que propones para cada uno.
 > - **Programas que vas a necesitar:** cuáles ya tienes y cuáles faltan, con
 >   una línea de para qué sirve cada uno.
 > - **Memoria:** anotaré lo que aprendamos y cada tarea que hagamos, para no
@@ -216,9 +250,14 @@ hooks se activan desde la próxima sesión de Claude Code.
 
 ## Paso 9 — Primeros pasos de verdad
 
-Lo que sigue es completar la lista de arranque. Ofrece, en una sola
-`AskUserQuestion` con selección múltiple, lo que le falte (todo opcional), y
-pon primero **hacer su primera tarea real**:
+Lo que sigue es completar la lista de arranque. Si el repositorio traía
+skills, primero **reconstruye** (`references/skills-existentes.md` § 6): las
+correcciones aprobadas, una por skill y con respaldo; el orden con
+`ordenar.py`, moviendo solo lo que la persona confirme; y `auditar.py` otra
+vez para comprobar que no queden problemas sin decidir.
+
+Después ofrece, en una sola `AskUserQuestion` con selección múltiple, lo que
+le falte (todo opcional), y pon primero **hacer su primera tarea real**:
 
 - **Instalar los programas que faltan** (solo si `programas.py` marca
   alguno): uno por uno con `programas.py --instalar <nombre>` para los de
@@ -309,6 +348,10 @@ revisa la copia y vuelve a aplicar su cambio.
 |---|---|
 | `montar.py --respuestas r.json [--dry-run]` | Montar o ampliar (`--actualizar`, `--json`, `--raiz`) |
 | `verificar.py` | Estado: OK, FALTA, DIVERGE, AVISO (`--json`) |
+| `revisar.py` | Borrador automático de la revisión de skills existentes (`--borrador`, `--pendientes`, `--resumen`) |
+| `propuesta.py` | La propuesta del paso 6, en lenguaje sencillo y lista para mostrar |
+| `inventario.py` | Skills, comandos, agentes, reglas, hooks y MCP que ya trae el repositorio (`--json`, `--cambios`, `--guardar`) |
+| `auditar.py` | Problemas de seguridad, lógica, contradicciones y arquitectura en lo existente (`--json`, `--reglas`) |
 | `activar.py` | Hook de activación por palabras (`--probar "texto"`, `--registrar`) |
 | `programas.py` | Programas para trabajar: estado, `--comando <nombre>` y `--instalar <nombre>` (solo con el sí de la persona) |
 | `arranque.py` | Lista de arranque: avance y cómo completar cada pendiente (`--breve`, `--json`) |
@@ -329,5 +372,6 @@ revisa la copia y vuelve a aplicar su cambio.
 | `references/entrevista.md` | Pasos 3 y 6: preguntas, inferencias y esquema del JSON |
 | `references/investigar-rol.md` | Paso 4: qué investigar del rol, cómo convertirlo en lineamientos y el bloque `investigacion_rol` |
 | `references/arquitecturas.md` | Paso 5: cómo decidir y los seis tipos |
+| `references/skills-existentes.md` | Pasos 2, 4, 6 y 9: revisar, validar y adaptar lo que ya traía el repositorio |
 | `plantillas/` | Lo que renderiza `montar.py` (CLAUDE.md, perfil, bitácora, atajos, hooks). No se edita por proyecto |
 | `convenciones/` | Las reglas del espacio que se copian a `docs/espacio-de-trabajo/` |

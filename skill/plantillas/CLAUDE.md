@@ -45,7 +45,13 @@ en `{{DOCS}}/carpetas.md`.
 
 ## Tus atajos
 
-Cada tarea habitual tiene un atajo en `.claude/skills/<tarea>/`, que la
+Si el repositorio ya traía skills, `{{CONTEXTO}}skills-del-repositorio.md`
+dice cuál usar para cada tarea, qué reglas imponen y qué conocimiento no está
+validado; las tareas que cubre un skill existente se hacen con ese skill.
+Cuando aparece uno nuevo o cambia alguno, se revisa antes de usarlo
+(`references/skills-existentes.md` del skill primeros-pasos).
+
+Cada tarea habitual sin skill propio tiene un atajo en `.claude/skills/<tarea>/`, que la
 persona usa escribiendo `/<tarea>` o pidiéndola con sus palabras. Si la
 petición coincide con un atajo, se invoca con la herramienta `Skill` y se
 siguen sus pasos: así la tarea sale igual cada vez. La primera vez que se usa

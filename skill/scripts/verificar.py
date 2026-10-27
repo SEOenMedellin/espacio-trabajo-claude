@@ -23,6 +23,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import bitacora  # noqa: E402
 import comun  # noqa: E402
+import inventario  # noqa: E402
 import programas  # noqa: E402
 
 
@@ -100,6 +101,10 @@ def revisar(raiz: Path, cfg: dict) -> list[tuple[str, str, str]]:
     for at in comun.atajos(cfg):
         item("OK" if (raiz / at["ruta"]).is_file() else "AVISO", f"atajo /{at['slug']}",
              "" if (raiz / at["ruta"]).is_file() else "no existe: montar.py lo crea")
+    if inventario.skills(raiz):
+        por_revisar = inventario.cambios(raiz)
+        item("AVISO" if por_revisar else "OK", "skills del repositorio",
+             "nuevos o cambiados sin revisar: " + ", ".join(por_revisar) if por_revisar else "")
     if not cfg.get("investigacion_rol"):
         item("AVISO", "investigación del rol", "no se ha hecho: amplía el espacio con primeros-pasos")
     for p in programas.lista(cfg):

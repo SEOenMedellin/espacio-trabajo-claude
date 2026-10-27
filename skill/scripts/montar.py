@@ -74,10 +74,51 @@ def validar_rol(inv) -> list[str]:
     return err
 
 
-def validar(cfg: dict, exigir_rol: bool = False) -> list[str]:
+ESTADOS_DATO = ("verificado", "desactualizado", "no verificado")
+TIPOS_PROBLEMA = ("seguridad", "logica", "contradiccion", "arquitectura")
+DECISIONES = ("corregir", "aceptar", "pendiente")
+
+
+def validar_skills(bloque, existentes: list[str]) -> list[str]:
+    """La revisión de los skills que ya traía el repositorio (references/skills-existentes.md)."""
+    if not existentes and not bloque:
+        return []
+    if not isinstance(bloque, dict) or not bloque.get("skills"):
+        return ["el repositorio ya tiene skills (" + ", ".join(existentes) + "): falta skills_existentes con su "
+                "revisión (references/skills-existentes.md)"]
+    err = []
+    if not FECHA.match(str(bloque.get("fecha", ""))):
+        err.append("skills_existentes.fecha debe ir en formato DD-mmm-YYYY")
+    revisados = {str(s.get("nombre", "")).lower() for s in bloque["skills"]}
+    for n in existentes:
+        if n.lower() not in revisados:
+            err.append(f"skills_existentes no incluye la revisión del skill {n!r}")
+    for s in bloque["skills"]:
+        n = s.get("nombre", "?")
+        if not s.get("nombre") or not s.get("para"):
+            err.append(f"cada skill revisado necesita 'nombre' y 'para': {s}")
+        for d in s.get("conocimiento", []):
+            if d.get("estado") not in ESTADOS_DATO:
+                err.append(f"{n}: el estado de «{d.get('dato', '')[:40]}» debe ser {' | '.join(ESTADOS_DATO)}")
+            elif d["estado"] != "no verificado" and not d.get("fuente"):
+                err.append(f"{n}: «{d.get('dato', '')[:40]}» está {d['estado']} pero no cita su fuente")
+        for p in s.get("problemas", []):
+            if p.get("gravedad") not in ("alta", "media", "baja") or p.get("tipo") not in TIPOS_PROBLEMA \
+                    or not p.get("que") or p.get("decision") not in DECISIONES:
+                err.append(f"{n}: cada problema necesita gravedad, tipo ({'|'.join(TIPOS_PROBLEMA)}), que y "
+                           f"decision ({'|'.join(DECISIONES)}): {p}")
+    for c in bloque.get("contradicciones", []):
+        if len(c.get("entre", [])) < 2 or not c.get("que") or c.get("decision") not in DECISIONES:
+            err.append(f"cada contradicción necesita 'entre' (dos o más), 'que' y 'decision': {c}")
+    return err
+
+
+def validar(cfg: dict, exigir_rol: bool = False, existentes: list[str] | None = None) -> list[str]:
     err = []
     if exigir_rol or "investigacion_rol" in cfg:
         err += validar_rol(cfg.get("investigacion_rol"))
+    if existentes is not None or "skills_existentes" in cfg:
+        err += validar_skills(cfg.get("skills_existentes"), existentes or [])
     for p in cfg.get("programas", []):
         if not isinstance(p, dict) or not p.get("nombre") or not p.get("para") or not p.get("comprobar"):
             err.append(f"cada programa necesita 'nombre', 'para' y 'comprobar' (comando que muestra su versión): {p}")
@@ -138,7 +179,7 @@ def validar(cfg: dict, exigir_rol: bool = False) -> list[str]:
 def combinar(viejo: dict, nuevo: dict) -> dict:
     """El perfil y la arquitectura nuevos mandan; carpetas, proyectos y credenciales se suman."""
     res = json.loads(json.dumps(viejo))
-    for k in ("perfil", "idioma", "trato", "git", "investigacion_rol"):
+    for k in ("perfil", "idioma", "trato", "git", "investigacion_rol", "skills_existentes"):
         if k in nuevo:
             res[k] = nuevo[k]
     arq_v, arq_n = res.setdefault("arquitectura", {}), nuevo.get("arquitectura", {})
@@ -242,6 +283,67 @@ def documento_rol(cfg: dict) -> str:
         partes += ["## Limitación", "", inv["limitacion"], ""]
     partes += ["## Fuentes", "", "\n".join(fuentes) or "Ninguna.", ""]
     return "\n".join(partes)
+
+
+def documentos_skills(cfg: dict) -> tuple[str, str]:
+    """(investigación con la validación de cada skill, contexto práctico para trabajar con ellos)."""
+    b = cfg["skills_existentes"]
+    inv = [f"# Revisión de los skills del repositorio", "",
+           f"Hecha el {b['fecha']} al preparar el espacio de **{cfg['perfil']['proyecto']}**: qué hace cada "
+           "skill, qué conocimiento trae y si se pudo validar, y qué problemas se encontraron.", ""]
+    ctx = ["# Skills de este repositorio", "",
+           f"Revisados el {b['fecha']}. Antes de una tarea, mira aquí si ya hay un skill que la resuelva; "
+           "el detalle de la revisión está en la carpeta de investigación.", "",
+           "| Skill | Para qué | Tareas que cubre |", "|---|---|---|"]
+    for s in b["skills"]:
+        ctx.append(f"| `{s['nombre']}` | {s['para']} | {', '.join(s.get('tareas', [])) or '—'} |")
+        inv += [f"## {s['nombre']}", "", f"- **Para qué:** {s['para']}"]
+        if s.get("ruta"):
+            inv.append(f"- **Dónde:** `{s['ruta']}`")
+        if s.get("tareas"):
+            inv.append("- **Tareas que cubre:** " + ", ".join(s["tareas"]))
+        if s.get("reglas"):
+            inv += ["", "**Reglas que impone**", ""] + [f"- {r}" for r in s["reglas"]]
+        if s.get("conocimiento"):
+            inv += ["", "**Conocimiento validado**", "", "| Dato | Estado | Fuente |", "|---|---|---|"]
+            inv += [f"| {d['dato']} | {d['estado']} | {d.get('fuente') or '—'} |" for d in s["conocimiento"]]
+        if s.get("problemas"):
+            inv += ["", "**Problemas**", ""]
+            inv += [f"- [{p['gravedad']}] {p['tipo']}: {p['que']} → {p['decision']}" for p in s["problemas"]]
+        inv.append("")
+    reglas = [(s["nombre"], r) for s in b["skills"] for r in s.get("reglas", [])]
+    if reglas:
+        ctx += ["", "## Reglas que imponen", ""] + [f"- **{n}:** {r}" for n, r in reglas]
+    viejo = [(s["nombre"], d) for s in b["skills"] for d in s.get("conocimiento", []) if d["estado"] != "verificado"]
+    if viejo:
+        ctx += ["", "## Cuidado: conocimiento sin validar o desactualizado", ""]
+        ctx += [f"- **{n}:** {d['dato']} ({d['estado']})" for n, d in viejo]
+    pend = [(s["nombre"], p) for s in b["skills"] for p in s.get("problemas", []) if p["decision"] != "aceptar"]
+    if pend:
+        ctx += ["", "## Problemas por resolver", ""]
+        ctx += [f"- **{n}** [{p['gravedad']}] {p['que']} ({p['decision']})" for n, p in pend]
+    if b.get("contradicciones"):
+        texto = [f"- Entre {', '.join(c['entre'])}: {c['que']} → {c['decision']}" for c in b["contradicciones"]]
+        inv += ["## Contradicciones", ""] + texto + [""]
+        ctx += ["", "## Contradicciones conocidas", ""] + texto
+    fuentes = [f"- {f['titulo']}. {f['url']} (consultado el {f.get('consultado', b['fecha'])})"
+               for f in b.get("fuentes", [])]
+    inv += ["## Fuentes", "", "\n".join(fuentes) or "Ninguna.", ""]
+    return "\n".join(inv), "\n".join(ctx) + "\n"
+
+
+def escribir_generado(raiz: Path, p: Path, texto: str, rep: Reporte, seco: bool) -> None:
+    """Archivo generado que se rehace si cambia, con copia previa."""
+    rel = p.relative_to(raiz).as_posix()
+    if p.exists() and p.read_text(encoding="utf-8") == texto:
+        rep("ya existía", rel)
+        return
+    existia = p.exists()
+    if not seco:
+        if existia:
+            respaldar(raiz, p)
+        comun.escribir(p, texto)
+    rep("actualizado" if existia else "creado", rel)
 
 
 def variables(cfg: dict, raiz: Path) -> dict:
@@ -494,6 +596,14 @@ def montar(raiz: Path, cfg: dict, seco: bool, forzar: bool, cfg_cambio: bool) ->
                                raiz, rep, seco)
     if archivo_rol(cfg):
         crear_si_falta(raiz / archivo_rol(cfg), documento_rol(cfg), raiz, rep, seco)
+    if cfg.get("skills_existentes"):
+        investigacion, contexto = documentos_skills(cfg)
+        base = comun.base_dir(cfg["rutas"]["investigacion"])
+        nombre = f"{cfg['skills_existentes']['fecha']}-skills-del-repositorio.md"
+        crear_si_falta(raiz / (nombre if base == "." else f"{base}/{nombre}"), investigacion, raiz, rep, seco)
+        for proy in unidades:
+            ctx = comun.base_dir(comun.resolver(cfg, proy)["contexto"])
+            escribir_generado(raiz, raiz / ctx / "skills-del-repositorio.md", contexto, rep, seco)
     plantilla_atajo = (PLANTILLA / "atajo.md").read_text(encoding="utf-8")
     for at in comun.atajos(cfg):
         crear_si_falta(raiz / at["ruta"], render(plantilla_atajo, dict(
@@ -511,6 +621,9 @@ def montar(raiz: Path, cfg: dict, seco: bool, forzar: bool, cfg_cambio: bool) ->
         for h in memoria.rebuild(raiz, cfg):
             rep("ejecutado", "memoria.py --rebuild", h)
         rep("ejecutado", "grafo.py --actualizar", grafo.actualizar(raiz, cfg))
+        if cfg.get("skills_existentes"):
+            import inventario
+            inventario.guardar(raiz)
     return rep
 
 
@@ -543,7 +656,11 @@ def main(argv=None) -> int:
         return 2
     if a.actualizar:
         cfg["version"] = comun.VERSION
-    errores = validar(cfg, exigir_rol=bool(a.respuestas))
+    existentes = None
+    if a.respuestas:
+        import inventario
+        existentes = [s["nombre"] for s in inventario.skills(raiz)]
+    errores = validar(cfg, exigir_rol=bool(a.respuestas), existentes=existentes)
     if errores:
         for e in errores:
             print(f"VALIDACIÓN: {e}", file=sys.stderr)

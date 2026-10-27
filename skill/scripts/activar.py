@@ -37,7 +37,9 @@ SOLO = re.compile(rf"^(hola\s+|bueno\s+|ok\s+|vamos\s+a\s+|quiero\s+|necesito\s+
 FRASES = re.compile(r"\b(primeros\s+pasos|primer\s+paso|configura(r)?\s+mi\s+espacio|prepara(r)?\s+(este|mi)\s+"
                     r"(repositorio|repo|espacio)|soy\s+nuev[oa]\s+en\s+(el|este)\s+(proyecto|equipo|repositorio)|"
                     r"repara(r)?\s+mi\s+espacio|organiza(r)?\s+mis\s+carpetas|ordena(r)?\s+mis\s+carpetas|"
-                    r"tengo\s+un\s+proyecto\s+nuevo|cambio\s+mi\s+cargo|ahora\s+tambien\s+hago)\b")
+                    r"tengo\s+un\s+proyecto\s+nuevo|cambio\s+mi\s+cargo|ahora\s+tambien\s+hago|"
+                    r"(revisa|revisar|audita|auditar|valida|validar)\s+(mis|los|las|todos\s+los)\s+"
+                    r"(skills|habilidades))\b")
 
 
 def normalizar(texto: str) -> str:

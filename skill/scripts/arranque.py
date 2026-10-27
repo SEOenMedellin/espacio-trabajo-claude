@@ -20,6 +20,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import bitacora  # noqa: E402
 import comun  # noqa: E402
+import inventario  # noqa: E402
 import programas  # noqa: E402
 
 IGNORAR = {".gitkeep", "README.md", "INDICE.md", ".DS_Store", "Thumbs.db", "desktop.ini"}
@@ -46,6 +47,13 @@ def pasos(raiz: Path, cfg: dict) -> list[dict]:
         res.append({"id": "accesos", "que": "Tus accesos guardados", "ok": not vacias,
                     "como": "Guiar a la persona para que escriba en credenciales/.env: " + ", ".join(vacias)
                             + " (nunca en el chat; ver credenciales.md)." if vacias else ""})
+    if inventario.skills(raiz):
+        por_revisar = inventario.cambios(raiz)
+        res.append({"id": "skills", "ok": not por_revisar,
+                    "que": "Revisión de los skills que ya tenías"
+                           + (f" (por revisar: {', '.join(por_revisar)})" if por_revisar else ""),
+                    "como": "Revisarlos con references/skills-existentes.md: auditar.py, validar su conocimiento, "
+                            "buscar contradicciones y llevar lo validado al contexto." if por_revisar else ""})
     unidades = comun.proyectos(cfg) or [None]
     contexto = any(_hay_archivos(raiz / comun.base_dir(comun.resolver(cfg, p)["contexto"])) for p in unidades)
     res.append({"id": "contexto", "que": "Documentos de tu proyecto", "ok": contexto,

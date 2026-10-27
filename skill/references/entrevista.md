@@ -117,7 +117,8 @@ Se escribe en la raíz con `Write`; `montar.py` lo borra al terminar bien.
     {"nombre": "Intérprete del lenguaje de análisis", "para": "Correr los scripts de limpieza y cálculo",
      "comprobar": "<comando> --version", "instalar": "Instalador oficial (URL de la fuente oficial)"}
   ],
-  "investigacion_rol": { "…": "ver references/investigar-rol.md § 6" }
+  "investigacion_rol": { "…": "ver references/investigar-rol.md § 6" },
+  "skills_existentes": { "…": "solo si el repositorio ya tenía skills: references/skills-existentes.md § 5" }
 }
 ```
 

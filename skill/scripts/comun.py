@@ -27,7 +27,7 @@ CONVENCIONES = SKILL / "convenciones"   # se copian a DOCS en cada espacio
 CONFIG = "espacio.json"
 ESTADO = ".espacio"                  # derivados: grafo, sesiones, respaldos
 DOCS = "docs/espacio-de-trabajo"     # convenciones copiadas al repositorio
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 MARCA_INICIO = "<!-- primeros-pasos:inicio -->"
 MARCA_FIN = "<!-- primeros-pasos:fin -->"
 MESES = ("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")
@@ -152,7 +152,7 @@ def atajos(cfg: dict) -> list[dict]:
     for t in cfg.get("perfil", {}).get("tareas", []):
         t = t if isinstance(t, dict) else {"tarea": str(t)}
         nombre = str(t.get("tarea", "")).strip()
-        if not nombre:
+        if not nombre or t.get("skill"):  # la cubre un skill que ya existía: no se crea atajo
             continue
         s = slug(nombre, largo=40)
         if s == "primeros-pasos":
