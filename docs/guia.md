@@ -6,10 +6,11 @@ palabras.
 
 ## Antes de empezar
 
-Necesitas [Claude Code](https://claude.com/claude-code) y una carpeta de
-trabajo, vacía o con tus archivos. Python, Node.js y Playwright los revisa el
-instalador; si falta alguno, te pregunta si lo instala. En Windows usa winget,
-en Mac Homebrew y en Linux apt o dnf.
+Necesitas [Claude Code](https://claude.com/claude-code), con una cuenta Pro,
+Max, Team o Enterprise, y una carpeta de trabajo, vacía o con tus archivos. Los
+comandos exactos para instalar Claude Code y el skill están en la
+[guía de instalación](instalacion.md). Git, Python, Node.js y Playwright los
+revisa el instalador del skill; si falta alguno, te pregunta si lo instala.
 
 Instálalo una vez por proyecto, desde la carpeta de ese proyecto. Cada
 carpeta tiene su propio espacio.

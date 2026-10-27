@@ -6,18 +6,91 @@ Instálalo en tu carpeta de trabajo, escribe «empezar» y en unos minutos tiene
 un espacio hecho a tu medida. Desde ese día, cada tarea queda registrada,
 Claude aprende de tus correcciones y ves cuánto tiempo te ahorras.
 
-```bash
-# Mac y Linux, desde la carpeta de tu proyecto
-curl -fsSL https://raw.githubusercontent.com/davidortiz-ops/espacio-trabajo-claude/main/install.sh | bash
+## Instalación
+
+Necesitas una cuenta de Claude Pro, Max, Team o Enterprise; el plan gratuito
+no incluye Claude Code. Haz los pasos en orden: copia cada comando completo,
+pégalo en la terminal y presiona Enter. Si nunca has usado una terminal, la
+[guía de instalación](docs/instalacion.md) explica cada paso con más detalle.
+
+### En Windows
+
+**1. Abre PowerShell.** Presiona la tecla Windows, escribe `PowerShell` y
+presiona Enter.
+
+**2. Instala Claude Code y Git** (solo la primera vez). Un comando a la vez:
+
+```powershell
+irm https://claude.ai/install.ps1 | iex
 ```
 
 ```powershell
-# Windows (PowerShell), desde la carpeta de tu proyecto
+winget install -e --id Git.Git
+```
+
+Cuando terminen, **cierra PowerShell y ábrelo de nuevo**.
+
+**3. Crea tu carpeta de trabajo y entra en ella.** Cambia `mi-proyecto` por
+el nombre de tu proyecto, sin espacios ni tildes:
+
+```powershell
+mkdir C:\trabajo\mi-proyecto -Force; cd C:\trabajo\mi-proyecto
+```
+
+**4. Instala el skill primeros-pasos** en esa carpeta:
+
+```powershell
 irm https://raw.githubusercontent.com/davidortiz-ops/espacio-trabajo-claude/main/install.ps1 | iex
 ```
 
-Después abre [Claude Code](https://claude.com/claude-code) en esa carpeta y
-escribe **empezar**.
+**5. Abre Claude y escribe `empezar`:**
+
+```powershell
+claude
+```
+
+### En Mac
+
+**1. Abre Terminal.** Presiona Cmd + Espacio, escribe `Terminal` y presiona
+Enter.
+
+**2. Instala Claude Code** (solo la primera vez):
+
+```bash
+curl -fsSL https://claude.ai/install.sh | bash
+```
+
+Cuando termine, **cierra Terminal y ábrela de nuevo**.
+
+**3. Crea tu carpeta de trabajo y entra en ella.** Cambia `mi-proyecto` por
+el nombre de tu proyecto, sin espacios ni tildes:
+
+```bash
+mkdir -p ~/trabajo/mi-proyecto && cd ~/trabajo/mi-proyecto
+```
+
+**4. Instala el skill primeros-pasos** en esa carpeta:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/davidortiz-ops/espacio-trabajo-claude/main/install.sh | bash
+```
+
+**5. Abre Claude y escribe `empezar`:**
+
+```bash
+claude
+```
+
+### Lo que vas a ver
+
+En el paso 4, el instalador revisa si tienes Git, Python, Node.js y
+Playwright, y te pregunta antes de instalar lo que falte: responde `S` y
+Enter. En el paso 5, la primera vez se abre el navegador para que inicies
+sesión con tu cuenta de Claude.
+
+Para volver otro día, abre la terminal, entra a tu carpeta y abre Claude:
+`cd C:\trabajo\mi-proyecto; claude` en Windows o
+`cd ~/trabajo/mi-proyecto && claude` en Mac.
 
 ![Cómo funciona primeros-pasos](docs/como-funciona.svg)
 
@@ -65,8 +138,8 @@ ya cubren las siguen haciendo ellas.
 
 ## Cómo funciona
 
-1. **Instalas** con la línea de arriba. Revisa si tienes Python, Node.js y
-   Playwright y te ofrece instalar lo que falte.
+1. **Instalas** con los comandos de arriba. Revisa si tienes Git, Python,
+   Node.js y Playwright y te ofrece instalar lo que falte.
 2. **Escribes «empezar»** y respondes unas preguntas: tu cargo, tu proyecto,
    tu objetivo, tus tareas y tus herramientas.
 3. **Revisas la propuesta.** Ves tus carpetas, tus atajos y lo que encontró de
@@ -123,8 +196,8 @@ de tu proyecto.
 
 ## Empieza hoy
 
-Abre una terminal en tu carpeta de trabajo, pega la línea de instalación de tu
-sistema y escribe «empezar» en Claude Code. En unos minutos tienes tu espacio
+Sigue los cinco pasos de [Instalación](#instalación) y escribe «empezar» en
+Claude Code. En unos minutos tienes tu espacio
 listo y tu primera tarea medida.
 
 ---

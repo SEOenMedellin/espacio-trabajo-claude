@@ -142,7 +142,7 @@ if "Programa ausente" not in (A / "docs/espacio-de-trabajo/perfil.md").read_text
     fallos.append("perfil.md no lista los programas")
 r = run(A, ["programas.py", "--json"])
 nombres = [x["nombre"] for x in json.loads(r.stdout or "[]")]
-if nombres[:3] != ["python", "node", "playwright"] or "Programa ausente" not in nombres:
+if nombres[:4] != ["git", "python", "node", "playwright"] or "Programa ausente" not in nombres:
     fallos.append(f"programas.py no lista los de base y los del espacio: {nombres}")
 if r.returncode != 1:
     fallos.append("programas.py no avisa con código 1 cuando falta un programa")
@@ -521,8 +521,8 @@ for nombre, cmd in instaladores:
         log(f"\n$ {nombre} (vuelta {vuelta}) → {r.returncode}\n{(r.stdout + r.stderr).strip()[:800]}")
         if palabra not in r.stdout or not (d / ".claude/skills/primeros-pasos/SKILL.md").is_file():
             fallos.append(f"{nombre} vuelta {vuelta}: no quedó {palabra}")
-        if not all(x in r.stdout for x in ("Programas para trabajar", "python", "node", "playwright")):
-            fallos.append(f"{nombre} no revisó Python, Node.js y Playwright")
+        if not all(x in r.stdout for x in ("Programas para trabajar", "git", "python", "node", "playwright")):
+            fallos.append(f"{nombre} no revisó Git, Python, Node.js y Playwright")
     hooks_inst = json.loads((d / ".claude/settings.json").read_text(encoding="utf-8")).get("hooks", {})         if (d / ".claude/settings.json").is_file() else {}
     if json.dumps(hooks_inst).count("activar.py") != 1:
         fallos.append(f"{nombre} no registró una sola vez la activación con «empezar»")

@@ -17,7 +17,7 @@ tests/prueba_completa.py  prueba de punta a punta en carpetas temporales
 ## Principios
 
 - El skill es agnóstico: nada de nombres de empresa, cliente, área o
-  herramienta dentro de `skill/`, salvo los programas de base (Python,
+  herramienta dentro de `skill/`, salvo los programas de base (Git, Python,
   Node.js y Playwright).
 - Lo que se puede decidir con un script se hace con un script. Claude solo
   pone criterio donde depende del rol de la persona.

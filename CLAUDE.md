@@ -11,7 +11,7 @@ aunque Claude Code las cargue.
 - **Totalmente agnóstico.** Nada de nombres de empresa, cliente, área,
   dominio o herramienta concreta dentro de `skill/`: todo sale de la entrevista.
   Los ejemplos de la documentación son genéricos. La única excepción son los
-  programas de base para trabajar (Python, Node.js y Playwright), que el skill
+  programas de base para trabajar (Git, Python, Node.js y Playwright), que el skill
   y los instaladores revisan e instalan con confirmación.
 - **Todo lo que ve el usuario va en español.** Fechas en formato `10-oct-2026`.
 - **Solo biblioteca estándar de Python 3.10+.** Nada que instalar con pip

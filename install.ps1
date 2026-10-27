@@ -69,7 +69,7 @@
         Write-Host ''
         Write-Host "Listo: primeros-pasos quedó $accion en $destino" -ForegroundColor Green
 
-        # ---- Programas para trabajar: Python, Node.js y Playwright
+        # ---- Programas para trabajar: Git, Python, Node.js y Playwright
         function Refrescar-Path {
             $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' +
                         [Environment]::GetEnvironmentVariable('Path', 'User')
@@ -93,6 +93,8 @@
 
         $hayWinget = [bool](Get-Command winget -ErrorAction SilentlyContinue)
         $programas = @(
+            @{ nombre = 'git'; prueba = { [bool](Get-Command git -ErrorAction SilentlyContinue) }; descarga = 'https://git-scm.com/downloads'
+               orden = $(if ($hayWinget) { 'winget install -e --id Git.Git --accept-package-agreements --accept-source-agreements' }) },
             @{ nombre = 'python'; prueba = { Tiene-Python }; descarga = 'https://www.python.org/downloads/'
                orden = $(if ($hayWinget) { 'winget install -e --id Python.Python.3.12 --accept-package-agreements --accept-source-agreements' }) },
             @{ nombre = 'node'; prueba = { Tiene-Node }; descarga = 'https://nodejs.org/'

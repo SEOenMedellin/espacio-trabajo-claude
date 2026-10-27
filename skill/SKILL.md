@@ -33,7 +33,7 @@ va cada cosa, qué se resolvió antes y cómo aprender de cada tarea.
 | `espacio.json` | La configuración: perfil, arquitectura y rutas de cada rol. Todo lo demás se deriva de aquí |
 | Investigación del rol | Responsabilidades, obligaciones, tareas comunes y programas del oficio, con fuentes; de ella salen los lineamientos (`references/investigar-rol.md`) |
 | Arquitectura de carpetas | Elegida según el objetivo y los lineamientos del rol (`references/arquitecturas.md`) |
-| Programas para trabajar | Python, Node.js y Playwright siempre, más los que pida el rol; `programas.py` los comprueba e instala, el aviso de inicio dice cuáles faltan y nada se instala sin confirmación |
+| Programas para trabajar | Git, Python, Node.js y Playwright siempre, más los que pida el rol; `programas.py` los comprueba e instala, el aviso de inicio dice cuáles faltan y nada se instala sin confirmación |
 | `CLAUDE.md` (bloque entre marcadores) | Perfil, mapa de carpetas y protocolo de trabajo; respeta lo que ya hubiera |
 | `docs/espacio-de-trabajo/` | Convenciones: carpetas, bitácoras, memoria, grafo, investigación, crear skills, credenciales, y el perfil |
 | Bitácora de trabajo | Una entrada por tarea del rol, con patrones, conocimiento adyacente y correcciones. Nunca registra configuración ni nada del sistema |
@@ -101,7 +101,7 @@ python <skill>/scripts/verificar.py
 Código 2 = sin montar (paso 2). Código 1 = Reparar. Código 0 = ya está
 montado: pregunta si quiere ampliarlo o si solo quería empezar a trabajar.
 
-Revisa también los programas de base para trabajar (Python, Node.js y
+Revisa también los programas de base para trabajar (Git, Python, Node.js y
 Playwright):
 
 ```bash
@@ -164,7 +164,7 @@ Anuncia en una frase que lo vas a hacer; no hace falta pedir permiso. Si no
 hay internet o la persona no quiere, sigue con la entrevista y anota el motivo
 en `limitacion`.
 
-Python, Node.js y Playwright ya los cubre `programas.py`. Para cada programa
+Git, Python, Node.js y Playwright ya los cubre `programas.py`. Para cada programa
 adicional que pida el rol, comprueba si ya está instalado corriendo su comando
 de versión: así la propuesta dice cuáles faltan.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Programas para trabajar: los de base (Python, Node.js y Playwright) y los
+"""Programas para trabajar: los de base (Git, Python, Node.js y Playwright) y los
 que la investigación del rol sumó en espacio.json → programas.
 
     (sin argumentos)      estado de cada programa: OK o FALTA
@@ -29,6 +29,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import comun  # noqa: E402
 
 BASE = [
+    {"nombre": "git", "titulo": "Git", "para": "Historial de versiones y, en Windows, la consola que usan los hooks",
+     "descarga": "https://git-scm.com/downloads",
+     "winget": "winget install -e --id Git.Git --accept-package-agreements --accept-source-agreements",
+     "brew": "brew install git", "apt": "sudo apt-get install -y git", "dnf": "sudo dnf install -y git"},
     {"nombre": "python", "titulo": "Python 3.10+", "para": "Los scripts del espacio de trabajo",
      "descarga": "https://www.python.org/downloads/",
      "winget": "winget install -e --id Python.Python.3.12 --accept-package-agreements --accept-source-agreements",
@@ -52,6 +56,8 @@ def _version(cmd: list[str]) -> str:
 
 
 def instalado(nombre: str) -> bool:
+    if nombre == "git":
+        return shutil.which("git") is not None
     if nombre == "python":
         return sys.version_info >= (3, 10)
     if nombre == "node":

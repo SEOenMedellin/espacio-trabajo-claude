@@ -49,7 +49,7 @@ fi
 aviso ""
 aviso "Listo: primeros-pasos quedó $ACCION en $DESTINO_REPO/$DESTINO_REL"
 
-# ---- Programas para trabajar: Python, Node.js y Playwright
+# ---- Programas para trabajar: Git, Python, Node.js y Playwright
 tiene_python() {
   for c in python3 python; do
     command -v "$c" >/dev/null 2>&1 && "$c" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)' 2>/dev/null && return 0
@@ -61,6 +61,7 @@ tiene_node() {
   [ "$(node --version 2>/dev/null | sed -E 's/^v([0-9]+).*/\1/')" -ge 18 ] 2>/dev/null
 }
 tiene_playwright() { command -v playwright >/dev/null 2>&1; }
+tiene_git() { command -v git >/dev/null 2>&1; }
 
 GESTOR=""
 case "$(uname -s)" in
@@ -70,6 +71,9 @@ esac
 
 orden() {  # orden de instalación de un programa con el gestor de este sistema
   case "$1:$GESTOR" in
+    git:brew) echo "brew install git" ;;
+    git:apt) echo "sudo apt-get install -y git" ;;
+    git:dnf) echo "sudo dnf install -y git" ;;
     python:brew) echo "brew install python@3.12" ;;
     python:apt) echo "sudo apt-get install -y python3" ;;
     python:dnf) echo "sudo dnf install -y python3" ;;
@@ -81,6 +85,7 @@ orden() {  # orden de instalación de un programa con el gestor de este sistema
 }
 descarga() {
   case "$1" in
+    git) echo "https://git-scm.com/downloads" ;;
     python) echo "https://www.python.org/downloads/" ;;
     node) echo "https://nodejs.org/" ;;
     playwright) echo "https://playwright.dev/docs/intro" ;;
@@ -100,7 +105,7 @@ preguntar() {  # devuelve 0 si la persona acepta
 aviso ""
 aviso "Programas para trabajar:"
 PENDIENTES=""
-for p in python node playwright; do
+for p in git python node playwright; do
   if "tiene_$p"; then
     aviso "  OK     $p"
     continue
