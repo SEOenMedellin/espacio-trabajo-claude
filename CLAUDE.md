@@ -13,6 +13,13 @@ aunque Claude Code las cargue.
   Los ejemplos de la documentación son genéricos. La única excepción son los
   programas de base para trabajar (Git, Python, Node.js y Playwright), que el skill
   y los instaladores revisan e instalan con confirmación.
+- **Nunca rutas absolutas en lo que se instala o se escribe.** El skill lo usa
+  cualquier persona, en Windows o Mac, en la carpeta que elija: nada que quede
+  en su espacio puede depender de la ruta de un equipo. Las rutas van relativas
+  a la raíz del espacio (en los hooks, `${CLAUDE_PROJECT_DIR}/…`) y Python va por
+  nombre, no por ruta. Lo propio de cada equipo (el nombre de Python de los
+  hooks) va en `.claude/settings.local.json`, que no se comparte. Lo hace
+  cumplir `rutas_absolutas()` en `tests/prueba_completa.py`.
 - **Todo lo que ve el usuario va en español.** Fechas en formato `10-oct-2026`.
 - **Solo biblioteca estándar de Python 3.10+.** Nada que instalar con pip
   para que los scripts del skill funcionen.

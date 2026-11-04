@@ -159,11 +159,17 @@ if "Programa ausente" not in run(A, ["inicio.py"], stdin="{}").stdout:
 r = run(A, ["montar.py"], esperado=0)
 if "creado" in r.stdout.replace("ya existía", ""):
     fallos.append("montar no es idempotente")
-st = json.loads((A / ".claude/settings.json").read_text())
-if "telemetria" not in json.dumps(st) or "orden_check" not in json.dumps(st):
-    fallos.append("settings no conservó la telemetría o no agregó hooks")
+compartido = json.loads((A / ".claude/settings.json").read_text())
+st = json.loads((A / ".claude/settings.local.json").read_text())
+if "telemetria" not in json.dumps(compartido) or any(comun.es_hook_propio(h) for gs in compartido["hooks"].values()
+                                                       for g in gs for h in g["hooks"]):
+    fallos.append("settings.json no conservó la telemetría o quedaron hooks del espacio en el archivo compartido")
+if "orden_check" not in json.dumps(st):
+    fallos.append("los hooks del espacio no quedaron en settings.local.json")
 if "activar.py" not in json.dumps(st.get("hooks", {}).get("UserPromptSubmit", [])):
     fallos.append("montar no registró el hook de activación")
+if ".claude/settings.local.json" not in (A / ".gitignore").read_text(encoding="utf-8"):
+    fallos.append(".gitignore no excluye settings.local.json")
 
 # hooks agnósticos: formato exec, sin variables de consola, y se ejecutan como
 # lo hace Claude Code (reemplaza ${CLAUDE_PROJECT_DIR} y lanza sin shell),
@@ -183,23 +189,61 @@ for h in propios:
                        encoding="utf-8", env=dict(os.environ, CLAUDE_PROJECT_DIR=str(A)))
     if r.returncode != 0:
         fallos.append(f"el hook {args[-1]} falló al ejecutarse sin consola: {r.stderr[:300]}")
-# una instalación vieja (comando con $CLAUDE_PROJECT_DIR) se repara al reinstalar
-viejo = json.loads((A / ".claude/settings.json").read_text(encoding="utf-8"))
-for gs in viejo["hooks"].values():
-    for g in gs:
-        for i, h in enumerate(g["hooks"]):
-            if "args" in h:
-                g["hooks"][i] = {"type": "command", "timeout": h["timeout"],
-                                 "command": f'python "$CLAUDE_PROJECT_DIR/.claude/skills/primeros-pasos/scripts/'
-                                            f'{h["args"][-1].rsplit("/", 1)[-1]}"'}
+# una instalación vieja (hooks con $CLAUDE_PROJECT_DIR en settings.json, el archivo
+# que se comparte) se repara al reinstalar: pasan a settings.local.json en formato exec
+viejo = dict(compartido)
+for evento, (script, timeout, matcher) in comun.HOOKS.items():
+    viejo["hooks"].setdefault(evento, []).append({"hooks": [{"type": "command", "timeout": timeout,
+        "command": f'python "$CLAUDE_PROJECT_DIR/.claude/skills/primeros-pasos/scripts/{script}"'}]})
 (A / ".claude/settings.json").write_text(json.dumps(viejo), encoding="utf-8")
+(A / ".claude/settings.local.json").unlink()
 if "formato viejo" not in run(A, ["verificar.py"]).stdout:
     fallos.append("verificar no detecta hooks en formato viejo")
 run(A, ["activar.py", "--registrar"], esperado=0)
-reparado = json.loads((A / ".claude/settings.json").read_text(encoding="utf-8"))
-if "$CLAUDE_PROJECT_DIR" in json.dumps(reparado) or json.dumps(reparado).count('"args"') != 4 \
-        or "telemetria" not in json.dumps(reparado):
-    fallos.append("reinstalar no reparó los hooks viejos o tocó los ajenos")
+compartido2 = (A / ".claude/settings.json").read_text(encoding="utf-8")
+local2 = (A / ".claude/settings.local.json").read_text(encoding="utf-8")
+if "$CLAUDE_PROJECT_DIR" in compartido2 + local2 or local2.count('"args"') != 4 \
+        or "telemetria" not in compartido2 or "primeros-pasos" in compartido2:
+    fallos.append("reinstalar no pasó los hooks viejos a settings.local.json o tocó los ajenos")
+
+# Ninguna ruta absoluta en nada de lo que el espacio deja escrito: el espacio
+# tiene que funcionar copiado a otro equipo, en otra carpeta y otro sistema.
+def rutas_absolutas(carpeta: Path) -> list[str]:
+    prohibidas = {str(carpeta), carpeta.as_posix(), str(Path.home()), Path.home().as_posix(),
+                  str(Path(sys.executable).parent), Path(sys.executable).parent.as_posix()}
+    prohibidas |= {p.replace("\\", "\\\\") for p in prohibidas}  # tal como queda dentro de un JSON
+    halladas = []
+    for f in carpeta.rglob("*"):
+        rel = f.relative_to(carpeta).as_posix()
+        if not f.is_file() or rel.startswith((".claude/skills/primeros-pasos/", ".git/")) \
+                or f.suffix.lower() not in {".md", ".json", ".txt", ".csv", ".yaml", ".yml", ".py", ".example", ""}:
+            continue
+        texto = f.read_text(encoding="utf-8", errors="ignore")
+        if any(p in texto for p in prohibidas):
+            halladas.append(rel)
+    return halladas
+if rutas_absolutas(A):
+    fallos.append(f"rutas absolutas escritas en el espacio: {rutas_absolutas(A)}")
+# la revisión de verdad las detecta
+(A / "datos" / "trampa.md").write_text(f"ver {A.as_posix()}/informe.md", encoding="utf-8")
+if "datos/trampa.md" not in rutas_absolutas(A):
+    fallos.append("la revisión de rutas absolutas no detecta una ruta absoluta")
+(A / "datos" / "trampa.md").unlink()
+
+# skill que corre desde fuera del proyecto (por ejemplo, la carpeta personal):
+# se copia dentro y los hooks quedan relativos, nunca con la ruta de afuera
+F = BASE / "fuera"
+shutil.copytree(SKILL, F / "primeros-pasos", ignore=shutil.ignore_patterns("__pycache__"))
+E = BASE / "proyecto e"
+E.mkdir()
+r = subprocess.run([sys.executable, str(F / "primeros-pasos/scripts/activar.py"), "--registrar", "--raiz", str(E)],
+                   capture_output=True, text=True, encoding="utf-8")
+hooks_e = (E / ".claude/settings.local.json").read_text(encoding="utf-8") \
+    if (E / ".claude/settings.local.json").is_file() else ""
+if r.returncode != 0 or not (E / ".claude/skills/primeros-pasos/scripts/activar.py").is_file() \
+        or "${CLAUDE_PROJECT_DIR}/.claude/skills/primeros-pasos/scripts/activar.py" not in hooks_e \
+        or "fuera" in hooks_e or rutas_absolutas(E):
+    fallos.append(f"skill fuera del proyecto: no quedó dentro con rutas relativas ({r.stderr[:200]})")
 
 # activación con «empezar», «iniciar», «configurar»…
 for texto, debe in [("empezar", True), ("Iniciar", True), ("¡Empecemos!", True), ("configurar", True),
@@ -584,27 +628,29 @@ run(D, ["montar.py", "--respuestas", "respuestas-espacio.json"], esperado=0)
 if run(D, ["retirar.py", "--estado"]).stdout.strip() != "activo":
     fallos.append("retirar --estado no dice activo")
 run(D, ["retirar.py", "--desactivar"], esperado=0)
-ajustes = (D / ".claude/settings.json").read_text(encoding="utf-8")
+ajustes = (D / ".claude/settings.local.json").read_text(encoding="utf-8")
 if (D / ".claude/skills/primeros-pasos/SKILL.md").exists() or "activar.py" in ajustes or "inicio.py" not in ajustes:
     fallos.append("desactivar no apagó el skill o quitó hooks que debían seguir")
 run(D, ["verificar.py"], esperado=0)
 run(D, ["montar.py"], esperado=0)
-if "activar.py" in (D / ".claude/settings.json").read_text(encoding="utf-8"):
+if "activar.py" in (D / ".claude/settings.local.json").read_text(encoding="utf-8"):
     fallos.append("reparar volvió a registrar la activación de un skill desactivado")
 run(D, ["retirar.py", "--reactivar"], esperado=0)
 if not (D / ".claude/skills/primeros-pasos/SKILL.md").is_file() or \
-        "activar.py" not in (D / ".claude/settings.json").read_text(encoding="utf-8"):
+        "activar.py" not in (D / ".claude/settings.local.json").read_text(encoding="utf-8"):
     fallos.append("reactivar no devolvió el skill y su activación")
 run(D, ["retirar.py", "--eliminar"], esperado=0)
 nuevo = D / ".claude/espacio/scripts"
 if (D / ".claude/skills/primeros-pasos").exists() or not (nuevo / "inicio.py").is_file():
     fallos.append("eliminar no trasladó las herramientas o dejó el skill")
-for f in (".claude/settings.json", "CLAUDE.md", ".claude/skills/actualizar-el-tablero-semanal/SKILL.md"):
+for f in (".claude/settings.local.json", "CLAUDE.md", ".claude/skills/actualizar-el-tablero-semanal/SKILL.md"):
     texto = (D / f).read_text(encoding="utf-8")
     if ".claude/skills/primeros-pasos" in texto or ".claude/espacio" not in texto:
         fallos.append(f"eliminar no repuntó {f}")
-if "activar.py" in (D / ".claude/settings.json").read_text(encoding="utf-8"):
+if "activar.py" in (D / ".claude/settings.local.json").read_text(encoding="utf-8"):
     fallos.append("eliminar dejó la activación por palabras")
+if rutas_absolutas(D):
+    fallos.append(f"rutas absolutas tras eliminar el skill: {rutas_absolutas(D)}")
 for args in (["verificar.py"], ["inicio.py"], ["tarea.py", "--empezar", "--proceso", "x", "--categoria", "informes"]):
     r = subprocess.run([sys.executable, str(nuevo / args[0]), *args[1:]], cwd=D, capture_output=True, text=True,
                        encoding="utf-8", input="{}", env=dict(os.environ, CLAUDE_PROJECT_DIR=str(D)))
@@ -648,9 +694,11 @@ for nombre, cmd in instaladores:
             fallos.append(f"{nombre} vuelta {vuelta}: no quedó {palabra}")
         if not all(x in r.stdout for x in ("Programas para trabajar", "Git", "Python", "Node.js", "Playwright")):
             fallos.append(f"{nombre} no revisó Git, Python, Node.js y Playwright")
-    hooks_inst = json.loads((d / ".claude/settings.json").read_text(encoding="utf-8")).get("hooks", {})         if (d / ".claude/settings.json").is_file() else {}
+    hooks_inst = json.loads((d / ".claude/settings.local.json").read_text(encoding="utf-8")).get("hooks", {})         if (d / ".claude/settings.local.json").is_file() else {}
     if json.dumps(hooks_inst).count("activar.py") != 1:
         fallos.append(f"{nombre} no registró una sola vez la activación con «empezar»")
+    if rutas_absolutas(d):
+        fallos.append(f"{nombre} dejó rutas absolutas: {rutas_absolutas(d)}")
     if (d / ".claude/skills/primeros-pasos.anterior").exists():
         fallos.append(f"{nombre} dejó la copia anterior")
     if nombre == "install.sh":  # en la carpeta personal no instala

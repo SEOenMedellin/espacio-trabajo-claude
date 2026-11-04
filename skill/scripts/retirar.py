@@ -39,11 +39,11 @@ def estado() -> str:
 
 
 def _settings(raiz: Path) -> tuple[Path, dict]:
-    p = raiz / ".claude" / "settings.json"
+    p = raiz / comun.SETTINGS_HOOKS
     try:
         return p, json.loads(p.read_text(encoding="utf-8")) if p.is_file() else {}
     except ValueError:
-        raise SystemExit("El archivo .claude/settings.json está dañado: corrígelo antes de retirar el skill.")
+        raise SystemExit(f"El archivo {comun.SETTINGS_HOOKS} está dañado: corrígelo antes de retirar el skill.")
 
 
 def quitar_activacion(raiz: Path) -> None:
@@ -88,7 +88,7 @@ def eliminar(raiz: Path) -> str:
         "SKILL.md", APAGADO, "references", "__pycache__"))
     quitar_activacion(raiz)
     cambiados = []
-    candidatos = [raiz / ".claude" / "settings.json", raiz / "CLAUDE.md"]
+    candidatos = [raiz / comun.SETTINGS_HOOKS, raiz / ".claude" / "settings.json", raiz / "CLAUDE.md"]
     candidatos += sorted((raiz / ".claude" / "skills").glob("*/SKILL.md")) if (raiz / ".claude" / "skills").is_dir() else []
     candidatos += sorted((raiz / comun.DOCS).glob("*.md")) if (raiz / comun.DOCS).is_dir() else []
     for f in candidatos:

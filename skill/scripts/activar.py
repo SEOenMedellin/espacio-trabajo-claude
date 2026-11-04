@@ -58,14 +58,11 @@ def activa(texto: str) -> bool:
 def registrar(raiz: Path) -> str:
     """Agrega este hook y, de paso, repara los hooks del espacio que estuvieran en
     un formato viejo. Lo corre cada instalación, así que reinstalar los arregla."""
-    res = comun.reparar_hooks(raiz, {"activar.py"})
-    if res is None:
-        return "error: .claude/settings.json no es JSON válido; no se tocó"
-    actual, cambios = res
-    if not cambios:
-        return "ya existía"
-    comun.escribir(raiz / ".claude" / "settings.json", json.dumps(actual, ensure_ascii=False, indent=2) + "\n")
-    return "registrado: " + ", ".join(cambios)
+    comun.asegurar_skill_en_proyecto(raiz)
+    cambios = comun.reparar_hooks(raiz, {"activar.py"})
+    if cambios is None:
+        return "error: la configuración de Claude en .claude/ no es JSON válido; no se tocó"
+    return ("registrado: " + ", ".join(cambios)) if cambios else "ya existía"
 
 
 def main(argv=None) -> int:

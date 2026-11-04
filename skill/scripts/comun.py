@@ -28,7 +28,7 @@ CONVENCIONES = SKILL / "convenciones"   # se copian a DOCS en cada espacio
 CONFIG = "espacio.json"
 ESTADO = ".espacio"                  # derivados: grafo, sesiones, respaldos
 DOCS = "docs/espacio-de-trabajo"     # convenciones copiadas al repositorio
-VERSION = "1.5.1"
+VERSION = "1.5.2"
 MARCA_INICIO = "<!-- primeros-pasos:inicio -->"
 MARCA_FIN = "<!-- primeros-pasos:fin -->"
 MESES = ("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")
@@ -261,8 +261,9 @@ def python_hook() -> tuple[str, list[str]]:
     for cmd in _candidatos_python():
         if _python_sirve(cmd):
             return cmd[0], cmd[1:]
-    # Ningún Python adecuado en el PATH: el que está corriendo este script, en esta máquina.
-    return Path(sys.executable).as_posix(), []
+    # Ningún Python adecuado en el PATH: el nombre habitual de este sistema. Nunca
+    # una ruta absoluta, que solo existiría en este equipo.
+    return _candidatos_python()[0][0], []
 
 
 def python_cmd() -> str:
@@ -280,38 +281,103 @@ HOOKS = {
 }
 
 
+# Los hooks van en settings.local.json: Claude Code lo lee igual que settings.json,
+# pero es de cada equipo y no se versiona. Así el nombre de Python de este equipo
+# («python» en Windows, «python3» en Mac) no viaja a otro que no lo tenga.
+SETTINGS_HOOKS = ".claude/settings.local.json"
+SETTINGS_COMPARTIDO = ".claude/settings.json"
+
+
+def skill_rel(raiz: Path) -> str:
+    """Ruta del skill relativa a la raíz del proyecto. Nunca absoluta: si el skill
+    está fuera del proyecto, es la ruta donde lo deja asegurar_skill_en_proyecto."""
+    try:
+        return SKILL.relative_to(raiz).as_posix()
+    except ValueError:
+        return ".claude/skills/primeros-pasos"
+
+
+def asegurar_skill_en_proyecto(raiz: Path) -> bool:
+    """Si el skill corre desde fuera del proyecto (por ejemplo, desde la carpeta
+    personal), lo copia a .claude/skills/primeros-pasos para que los hooks y la
+    documentación usen una ruta relativa que exista en cualquier equipo.
+    Devuelve True si copió."""
+    try:
+        SKILL.relative_to(raiz)
+        return False
+    except ValueError:
+        pass
+    destino = raiz / skill_rel(raiz)
+    if (destino / "scripts" / "comun.py").is_file():
+        return False
+    shutil.copytree(SKILL, destino, dirs_exist_ok=True, ignore=shutil.ignore_patterns("__pycache__"))
+    return True
+
+
 def hook(raiz: Path, script: str, timeout: int) -> dict:
     """Hook en formato exec («command» + «args»). Claude Code reemplaza
     ${CLAUDE_PROJECT_DIR} por la carpeta del proyecto de quien lo usa y lanza
     Python directamente, sin Git Bash ni PowerShell de por medio: no depende del
-    sistema, de la consola, de espacios en la ruta ni de dónde esté la carpeta."""
-    try:
-        ruta = "${CLAUDE_PROJECT_DIR}/" + SKILL.relative_to(raiz).as_posix()
-    except ValueError:
-        ruta = SKILL.as_posix()  # skill fuera del proyecto: su ruta en esta máquina
+    sistema, de la consola, de espacios en la ruta ni de dónde esté la carpeta.
+    Ninguna ruta absoluta: la del script es relativa al proyecto y Python va por nombre."""
     exe, previos = python_hook()
-    return {"type": "command", "command": exe, "args": [*previos, f"{ruta}/scripts/{script}"],
+    return {"type": "command", "command": exe,
+            "args": [*previos, f"${{CLAUDE_PROJECT_DIR}}/{skill_rel(raiz)}/scripts/{script}"],
             "timeout": timeout}
 
 
-def es_hook_propio(h: dict, script: str) -> bool:
-    """Hook de este skill, en formato viejo o nuevo, instalado o retirado a .claude/espacio."""
+def es_hook_propio(h: dict, script: str | None = None) -> bool:
+    """Hook de este skill (cualquiera, o el de `script`), en formato viejo o nuevo,
+    instalado o retirado a .claude/espacio."""
     texto = " ".join([str(h.get("command", ""))] + [str(a) for a in h.get("args") or []]).replace("\\", "/")
-    return f"/scripts/{script}" in texto and any(
+    scripts = [script] if script else [s for s, _, _ in HOOKS.values()]
+    return any(f"/scripts/{s}" in texto for s in scripts) and any(
         m in texto for m in ("primeros-pasos/", ".claude/espacio/", SKILL.as_posix()))
 
 
-def reparar_hooks(raiz: Path, agregar: set[str]) -> tuple[dict, list[str]] | None:
-    """Lee .claude/settings.json, pasa todos los hooks de este skill al formato
-    vigente y agrega los de `agregar` que falten. Lo demás se conserva tal cual.
-    Devuelve (settings, cambios), o None si el JSON está dañado."""
-    p = raiz / ".claude" / "settings.json"
+def _leer_json(p: Path) -> dict | None:
     try:
-        actual = json.loads(p.read_text(encoding="utf-8") or "{}") if p.is_file() else {}
+        return json.loads(p.read_text(encoding="utf-8") or "{}") if p.is_file() else {}
     except ValueError:
         return None
+
+
+def _sin_hooks_propios(datos: dict) -> list[str]:
+    """Quita de un settings los hooks de este skill; devuelve qué quitó."""
+    quitados = []
+    hk = datos.get("hooks") or {}
+    for evento in list(hk):
+        grupos = []
+        for g in hk[evento] or []:
+            propios = [h for h in g.get("hooks", []) if es_hook_propio(h)]
+            quitados += [evento] * len(propios)
+            resto = [h for h in g.get("hooks", []) if not es_hook_propio(h)]
+            if resto:
+                grupos.append({**g, "hooks": resto})
+        if grupos:
+            hk[evento] = grupos
+        else:
+            del hk[evento]
+    if "hooks" in datos and not datos["hooks"]:
+        del datos["hooks"]
+    return quitados
+
+
+def reparar_hooks(raiz: Path, agregar: set[str], aplicar: bool = True) -> list[str] | None:
+    """Deja los hooks de este skill en .claude/settings.local.json, en el formato
+    vigente, y agrega los de `agregar` que falten. Si había hooks del skill en
+    .claude/settings.json (instalaciones anteriores), los pasa al local. Todo lo
+    demás de los dos archivos se conserva. Devuelve los cambios, o None si alguno
+    de los dos JSON está dañado. Con aplicar=False solo dice qué cambiaría."""
+    p_local, p_comp = raiz / SETTINGS_HOOKS, raiz / SETTINGS_COMPARTIDO
+    local, comp = _leer_json(p_local), _leer_json(p_comp)
+    if local is None or comp is None:
+        return None
     cambios = []
-    hk = actual.setdefault("hooks", {})
+    movidos = set(_sin_hooks_propios(comp))
+    if movidos:
+        cambios.append("hooks movidos de .claude/settings.json a .claude/settings.local.json")
+    hk = local.setdefault("hooks", {})
     for evento, (script, timeout, matcher) in HOOKS.items():
         nuevo = hook(raiz, script, timeout)
         hallado = False
@@ -322,11 +388,15 @@ def reparar_hooks(raiz: Path, agregar: set[str]) -> tuple[dict, list[str]] | Non
                     if h != nuevo:
                         g["hooks"][i] = nuevo
                         cambios.append(f"{evento}:{script} (reparado)")
-        if not hallado and script in agregar:
+        if not hallado and (script in agregar or evento in movidos):
             grupo = {"matcher": matcher, "hooks": [nuevo]} if matcher else {"hooks": [nuevo]}
             hk.setdefault(evento, []).append(grupo)
             cambios.append(f"{evento}:{script}")
-    return actual, cambios
+    if aplicar and cambios:
+        if movidos:
+            escribir(p_comp, json.dumps(comp, ensure_ascii=False, indent=2) + "\n")
+        escribir(p_local, json.dumps(local, ensure_ascii=False, indent=2) + "\n")
+    return cambios
 
 
 def _sesion_ruta(raiz: Path, sid: str) -> Path:
@@ -346,10 +416,3 @@ def sesion_guardar(raiz: Path, sid: str, datos: dict) -> None:
     except OSError:
         pass
 
-
-def skill_rel(raiz: Path) -> str:
-    """Ruta del skill para los hooks: relativa a la raíz si vive dentro, absoluta si no."""
-    try:
-        return SKILL.relative_to(raiz).as_posix()
-    except ValueError:
-        return SKILL.as_posix()

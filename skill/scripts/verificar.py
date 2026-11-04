@@ -89,19 +89,20 @@ def revisar(raiz: Path, cfg: dict) -> list[tuple[str, str, str]]:
     lineas = {l.strip() for l in gi.read_text(encoding="utf-8").splitlines()} if gi.is_file() else set()
     item("OK" if "credenciales/*" in lineas else "DIVERGE", ".gitignore",
          "" if "credenciales/*" in lineas else "las credenciales no están excluidas")
-    st = raiz / ".claude" / "settings.json"
+    st = raiz / comun.SETTINGS_HOOKS
     try:
         hk = json.dumps(json.loads(st.read_text(encoding="utf-8")).get("hooks", {})) if st.is_file() else ""
         faltan = [h for h in ("inicio.py", "cierre_check.py", "orden_check.py") + (("activar.py",) if comun.activo() else ())
                   if h not in hk]
-        rh = comun.reparar_hooks(raiz, set())
-        viejos = [c.split(" ")[0] for c in (rh[1] if rh else []) if c.endswith("(reparado)")]
+        rh = comun.reparar_hooks(raiz, set(), aplicar=False) or []
+        viejos = [c.split(" ")[0] for c in rh if c.endswith("(reparado)")]
+        viejos += ["en .claude/settings.json"] if any(c.startswith("hooks movidos") for c in rh) else []
         detalle = "; ".join(x for x in ("faltan hooks: " + ", ".join(faltan) if faltan else "",
                                          "hooks en formato viejo (pueden fallar según la consola): "
                                          + ", ".join(viejos) if viejos else "") if x)
-        item("DIVERGE" if faltan or viejos else "OK", ".claude/settings.json", detalle)
+        item("DIVERGE" if faltan or viejos else "OK", comun.SETTINGS_HOOKS, detalle)
     except ValueError:
-        item("DIVERGE", ".claude/settings.json", "JSON inválido")
+        item("DIVERGE", comun.SETTINGS_HOOKS, "JSON inválido")
     item("OK" if (raiz / comun.ESTADO / "grafo.json").is_file() else "AVISO", f"{comun.ESTADO}/grafo.json",
          "" if (raiz / comun.ESTADO / "grafo.json").is_file() else "corre grafo.py --actualizar")
     for at in comun.atajos(cfg):

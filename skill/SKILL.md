@@ -91,9 +91,13 @@ abandone:
 
 Este skill **nunca**: borra ni mueve archivos de la persona, sobrescribe un
 archivo existente (el bloque de `CLAUDE.md` solo se rehace con
-`--actualizar`, y con copia previa), quita entradas de
+`--actualizar`, y con copia previa), quita entradas ajenas de
 `.claude/settings.json`, pide o escribe valores de credenciales, agrega
-remotos de git ni publica nada fuera del repositorio.
+remotos de git, publica nada fuera del repositorio **ni escribe una ruta
+absoluta** en ningún archivo del espacio: todo va relativo a su raíz, para que
+funcione en cualquier equipo y cualquier carpeta. Sus hooks viven en
+`.claude/settings.local.json` (propio de cada equipo); los que hubiera en
+`.claude/settings.json` de una versión anterior se pasan ahí solos.
 
 ## Cuándo corre
 

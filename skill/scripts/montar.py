@@ -34,7 +34,8 @@ PLANTILLA = comun.PLANTILLAS
 VAR = re.compile(r"^[A-Z][A-Z0-9_]*$")
 FECHA = re.compile(r"^\d{2}-(" + "|".join(comun.MESES) + r")-\d{4}$")
 GITIGNORE = ["credenciales/*", "!credenciales/.env.example", ".env", f"{comun.ESTADO}/",
-             "respuestas-espacio.json", "cierre.json", "__pycache__/"]
+             "respuestas-espacio.json", "cierre.json", "__pycache__/",
+             ".claude/settings.local.json"]  # hooks de cada equipo: nunca se comparten
 
 
 class Reporte:
@@ -582,22 +583,18 @@ def gitignore(raiz: Path, rep: Reporte, seco: bool) -> None:
 
 
 def hooks(raiz: Path, v: dict, rep: Reporte, seco: bool) -> None:
-    p = raiz / ".claude" / "settings.json"
     # Sin activación por palabras si el skill se desactivó o se eliminó.
     agregar = {s for s, _, _ in comun.HOOKS.values() if s != "activar.py" or comun.activo()}
-    res = comun.reparar_hooks(raiz, agregar)
-    if res is None:
+    existia = (raiz / comun.SETTINGS_HOOKS).exists()
+    cambios = comun.reparar_hooks(raiz, agregar, aplicar=not seco)
+    if cambios is None:
         rep("error", ".claude/settings.json", "JSON inválido; corrígelo sin quitar entradas y repite")
         return
-    actual, agregados = res
-    if not agregados:
-        rep("ya existía", ".claude/settings.json")
+    if not cambios:
+        rep("ya existía", comun.SETTINGS_HOOKS)
         return
-    existia = p.exists()
-    if not seco:
-        comun.escribir(p, json.dumps(actual, ensure_ascii=False, indent=2) + "\n")
-    rep("mergeado" if existia else "creado", ".claude/settings.json",
-        "agregados: " + ", ".join(agregados) + " (las entradas existentes se conservan)")
+    rep("mergeado" if existia else "creado", comun.SETTINGS_HOOKS,
+        ", ".join(cambios) + " (las entradas existentes se conservan)")
 
 
 def git(raiz: Path, cfg: dict, rep: Reporte, seco: bool) -> None:
@@ -670,6 +667,8 @@ def montar(raiz: Path, cfg: dict, seco: bool, forzar: bool, cfg_cambio: bool) ->
     convenciones(raiz, v, rep, seco, forzar)
     credenciales(raiz, cfg, rep, seco)
     gitignore(raiz, rep, seco)
+    if not seco and comun.asegurar_skill_en_proyecto(raiz):
+        rep("creado", comun.skill_rel(raiz), "copia del skill dentro del proyecto, para usar rutas relativas")
     hooks(raiz, v, rep, seco)
     git(raiz, cfg, rep, seco)
     if not seco:

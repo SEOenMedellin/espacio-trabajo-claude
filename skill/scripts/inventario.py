@@ -117,8 +117,8 @@ def hooks(raiz: Path) -> list[dict]:
         for evento, grupos in (datos.get("hooks") or {}).items():
             for g in grupos or []:
                 for h in g.get("hooks", []):
-                    cmd = h.get("command", "")
-                    if cmd and comun.SKILL.name not in cmd:
+                    cmd = " ".join([h.get("command", "")] + [str(a) for a in h.get("args") or []]).strip()
+                    if cmd and not comun.es_hook_propio(h):
                         res.append({"archivo": f".claude/{nombre}", "evento": evento, "comando": cmd})
     return res
 
