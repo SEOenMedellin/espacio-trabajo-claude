@@ -55,22 +55,17 @@ def activa(texto: str) -> bool:
     return bool(SOLO.match(t) or FRASES.search(t))
 
 
-def comando(raiz: Path) -> str:
-    return f'{comun.python_cmd()} "$CLAUDE_PROJECT_DIR/{comun.skill_rel(raiz)}/scripts/activar.py"'
-
-
 def registrar(raiz: Path) -> str:
-    p = raiz / ".claude" / "settings.json"
-    try:
-        actual = json.loads(p.read_text(encoding="utf-8") or "{}") if p.is_file() else {}
-    except ValueError:
+    """Agrega este hook y, de paso, repara los hooks del espacio que estuvieran en
+    un formato viejo. Lo corre cada instalación, así que reinstalar los arregla."""
+    res = comun.reparar_hooks(raiz, {"activar.py"})
+    if res is None:
         return "error: .claude/settings.json no es JSON válido; no se tocó"
-    grupos = actual.setdefault("hooks", {}).setdefault("UserPromptSubmit", [])
-    if "activar.py" in json.dumps(grupos):
+    actual, cambios = res
+    if not cambios:
         return "ya existía"
-    grupos.append({"hooks": [{"type": "command", "command": comando(raiz), "timeout": 10}]})
-    comun.escribir(p, json.dumps(actual, ensure_ascii=False, indent=2) + "\n")
-    return "registrado"
+    comun.escribir(raiz / ".claude" / "settings.json", json.dumps(actual, ensure_ascii=False, indent=2) + "\n")
+    return "registrado: " + ", ".join(cambios)
 
 
 def main(argv=None) -> int:

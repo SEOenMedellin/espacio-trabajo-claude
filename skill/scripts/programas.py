@@ -29,10 +29,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import comun  # noqa: E402
 
 BASE = [
-    {"nombre": "git", "titulo": "Git", "para": "Historial de versiones y, en Windows, la consola que usan los hooks",
+    {"nombre": "git", "titulo": "Git", "para": "Historial de versiones y, en Windows, la consola que usa Claude Code",
      "descarga": "https://git-scm.com/downloads",
      "winget": "winget install -e --id Git.Git --accept-package-agreements --accept-source-agreements",
-     "brew": "brew install git", "apt": "sudo apt-get install -y git", "dnf": "sudo dnf install -y git"},
+     "brew": "brew install git", "apt": "sudo apt-get install -y git", "dnf": "sudo dnf install -y git",
+     "mac": "xcode-select --install"},
     {"nombre": "python", "titulo": "Python 3.10+", "para": "Los scripts del espacio de trabajo",
      "descarga": "https://www.python.org/downloads/",
      "winget": "winget install -e --id Python.Python.3.12 --accept-package-agreements --accept-source-agreements",
@@ -44,7 +45,9 @@ BASE = [
     {"nombre": "playwright", "titulo": "Playwright", "para": "Navegador automatizado para investigar y probar páginas",
      "descarga": "https://playwright.dev/docs/intro", "requiere": "node",
      # Pasos sueltos: «&&» no existe en PowerShell 5.1 y «;» no separa en CMD.
-     "pasos": ["npm install -g playwright", "npx playwright install chromium"]},
+     # En Windows, npm.cmd: npm.ps1 lo bloquea la política de scripts por defecto.
+     "pasos": ["npm install -g playwright", "npx playwright install chromium"],
+     "pasos_windows": ["npm.cmd install -g playwright", "npx.cmd playwright install chromium"]},
 ]
 
 
@@ -57,8 +60,8 @@ def _version(cmd: list[str]) -> str:
 
 
 def instalado(nombre: str) -> bool:
-    if nombre == "git":
-        return shutil.which("git") is not None
+    if nombre == "git":  # en Mac, /usr/bin/git existe sin Git instalado: hay que ejecutarlo
+        return bool(shutil.which("git")) and bool(_version(["git", "--version"]))
     if nombre == "python":
         return sys.version_info >= (3, 10)
     if nombre == "node":
@@ -84,8 +87,11 @@ def gestor() -> str | None:
 def comando(p: dict) -> str | None:
     """La orden para mostrar: con «;», que sirve igual en PowerShell, bash y zsh."""
     if p.get("pasos"):
-        return "; ".join(p["pasos"])
+        return "; ".join(p["pasos_windows"] if platform.system() == "Windows" and p.get("pasos_windows")
+                         else p["pasos"])
     g = gestor()
+    if not g and platform.system() == "Darwin":
+        return p.get("mac")
     return p.get(g) if g else None
 
 

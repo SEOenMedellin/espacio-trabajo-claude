@@ -4,7 +4,21 @@ Sigue los pasos en orden. Cada comando se copia completo, se pega en la
 terminal y se ejecuta con Enter. Toma unos minutos.
 
 Antes de empezar necesitas tener [Claude Code](https://claude.com/claude-code)
-instalado.
+instalado. Si no lo tienes, abre la terminal (paso 1) y ejecuta el comando de
+tu sistema. Al terminar, **cierra la terminal y ábrela de nuevo** para que
+reconozca el comando `claude`.
+
+**En Windows (PowerShell):**
+
+```powershell
+irm https://claude.ai/install.ps1 | iex
+```
+
+**En Mac (Terminal):**
+
+```bash
+curl -fsSL https://claude.ai/install.sh | bash
+```
 
 ## Paso 1. Abre la terminal
 
@@ -48,13 +62,13 @@ En la misma terminal, dentro de tu carpeta:
 **En Windows:**
 
 ```powershell
-irm https://raw.githubusercontent.com/davidortiz-ops/espacio-trabajo-claude/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/SEOenMedellin/espacio-trabajo-claude/main/install.ps1 | iex
 ```
 
 **En Mac** (solo en Mac: en Windows este comando falla):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/davidortiz-ops/espacio-trabajo-claude/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/SEOenMedellin/espacio-trabajo-claude/main/install.sh | bash
 ```
 
 El instalador revisa si tienes Git, Python, Node.js y Playwright. Si falta
@@ -123,6 +137,11 @@ queda intacto.
 | `claude: command not found` o `'claude' no se reconoce` | Falta instalar Claude Code, o hay que cerrar y volver a abrir la terminal después de instalarlo |
 | Claude no responde a «empezar» | Escribe `/primeros-pasos` o cierra y vuelve a abrir Claude en tu carpeta |
 | Falta un programa después de instalarlo | Cierra y vuelve a abrir la terminal |
+| `npm.ps1 no se puede cargar porque la ejecución de scripts está deshabilitada` (o `running scripts is disabled`) | En Windows, escribe `npm.cmd` en lugar de `npm` y `npx.cmd` en lugar de `npx` |
+| En Mac, `npm ERR! code EACCES` al instalar Playwright | Repite ese comando con `sudo` delante (`sudo npm install -g playwright`) y escribe la contraseña de tu Mac; no se ve mientras la escribes |
+| En Mac, `xcrun: error: invalid active developer path` o una ventana que pide instalar las «herramientas de línea de comandos» | Faltan las herramientas de Apple que traen Git. Ejecuta `xcode-select --install`, acepta, espera a que termine y repite el paso 3 |
+| `No se pudo instalar: algún archivo del skill está en uso` | Cierra Claude Code y los editores abiertos en tu carpeta, y repite el paso 3 |
+| Al abrir Claude o al escribir aparece `hook error`, `Permission denied` o `No such file or directory` con una ruta `.claude/skills/primeros-pasos/…` | Tu instalación es de una versión anterior. Repite el paso 3 dentro de tu carpeta: el instalador repara esos ajustes sin tocar tu trabajo |
 
 Si nada de esto lo resuelve, copia el mensaje exacto que ves y compártelo con
 quien te está acompañando.

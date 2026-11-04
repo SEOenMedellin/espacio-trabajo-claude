@@ -1,17 +1,21 @@
 #!/usr/bin/env bash
 # Instala o actualiza el skill Primer Paso (primeros-pasos) en la carpeta actual, sea cual sea su ruta.
 #
-#   curl -fsSL https://raw.githubusercontent.com/davidortiz-ops/espacio-trabajo-claude/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/SEOenMedellin/espacio-trabajo-claude/main/install.sh | bash
 #
 # PRIMEROS_PASOS_ORIGEN=<carpeta> instala desde una copia local (lo usan las pruebas).
 set -euo pipefail
 
-REPO="davidortiz-ops/espacio-trabajo-claude"
+REPO="SEOenMedellin/espacio-trabajo-claude"
 RAMA="${PRIMEROS_PASOS_RAMA:-main}"
 DESTINO_REL=".claude/skills/primeros-pasos"
 
 aviso() { printf '%s\n' "$*"; }
-falla() { printf 'No se pudo instalar: %s\n' "$*" >&2; exit 1; }
+falla() {
+  echo "No se pudo instalar: $*" >&2
+  echo "Si no sabes cómo seguir, copia este mensaje y envíaselo a quien te compartió el enlace." >&2
+  exit 1
+}
 
 # Con «curl … | bash» la entrada es el propio script: las preguntas se leen de /dev/tty.
 INTERACTIVO=0
@@ -61,17 +65,17 @@ find "$TMP/skill" -name '__pycache__' -type d -prune -exec rm -rf {} +
 mkdir -p "$DESTINO_REPO/.claude/skills"
 if [ -d "$DESTINO_REPO/$DESTINO_REL" ]; then
   ACCION="actualizado"
-  rm -rf "$DESTINO_REPO/$DESTINO_REL.anterior"
-  mv "$DESTINO_REPO/$DESTINO_REL" "$DESTINO_REPO/$DESTINO_REL.anterior"
+  rm -rf "$DESTINO_REPO/$DESTINO_REL.anterior" 2>/dev/null || true
+  mv "$DESTINO_REPO/$DESTINO_REL" "$DESTINO_REPO/$DESTINO_REL.anterior"     || falla "no se pudo reemplazar la versión anterior. Revisa los permisos de la carpeta .claude y vuelve a ejecutar el comando."
   mv "$TMP/skill" "$DESTINO_REPO/$DESTINO_REL"
-  rm -rf "$DESTINO_REPO/$DESTINO_REL.anterior"
+  rm -rf "$DESTINO_REPO/$DESTINO_REL.anterior" 2>/dev/null || true
 else
   ACCION="instalado"
   mv "$TMP/skill" "$DESTINO_REPO/$DESTINO_REL"
 fi
 
 aviso ""
-aviso "Listo: Primer Paso quedó $ACCION en $DESTINO_REPO/$DESTINO_REL"
+aviso "Listo: Primer Paso quedó $ACCION en tu carpeta $DESTINO_REPO"
 
 # ---- Programas para trabajar: Git, Python, Node.js y Playwright
 tiene_python() {
@@ -85,7 +89,17 @@ tiene_node() {
   [ "$(node --version 2>/dev/null | sed -E 's/^v([0-9]+).*/\1/')" -ge 18 ] 2>/dev/null
 }
 tiene_playwright() { command -v playwright >/dev/null 2>&1; }
-tiene_git() { command -v git >/dev/null 2>&1; }
+# En Mac, /usr/bin/git existe aunque Git no esté instalado: hay que ejecutarlo.
+tiene_git() { command -v git >/dev/null 2>&1 && git --version >/dev/null 2>&1; }
+# npm -g necesita sudo cuando su carpeta global no es de la persona (Node del instalador oficial).
+npm_global() {
+  pre="$(npm prefix -g 2>/dev/null || echo /usr/local)"
+  if [ -w "$pre/lib/node_modules" ] || { [ ! -e "$pre/lib/node_modules" ] && [ -w "$pre/lib" ]; }; then
+    echo "npm install -g playwright"
+  else
+    echo "sudo npm install -g playwright"
+  fi
+}
 
 GESTOR=""
 case "$(uname -s)" in
@@ -98,13 +112,14 @@ orden() {  # orden de instalación de un programa con el gestor de este sistema
     git:brew) echo "brew install git" ;;
     git:apt) echo "sudo apt-get install -y git" ;;
     git:dnf) echo "sudo dnf install -y git" ;;
+    git:) if [ "$(uname -s)" = "Darwin" ]; then echo "xcode-select --install"; fi ;;
     python:brew) echo "brew install python@3.12" ;;
     python:apt) echo "sudo apt-get install -y python3" ;;
     python:dnf) echo "sudo dnf install -y python3" ;;
     node:brew) echo "brew install node" ;;
     node:apt) echo "sudo apt-get install -y nodejs npm" ;;
     node:dnf) echo "sudo dnf install -y nodejs npm" ;;
-    playwright:*) echo "npm install -g playwright; npx playwright install chromium" ;;
+    playwright:*) echo "$(npm_global); npx playwright install chromium" ;;
   esac
 }
 descarga() {
@@ -123,49 +138,65 @@ preguntar() {  # devuelve 0 si la persona acepta
   case "$r" in n|N|no|NO|No) return 1 ;; *) return 0 ;; esac
 }
 
+titulo() { case "$1" in git) echo "Git" ;; python) echo "Python" ;; node) echo "Node.js" ;; playwright) echo "Playwright" ;; esac; }
+para_que() {
+  case "$1" in
+    git) echo "guarda el historial de tus archivos" ;;
+    python) echo "hace funcionar tu espacio de trabajo" ;;
+    node) echo "lo necesitan algunas herramientas" ;;
+    playwright) echo "permite a Claude revisar páginas web" ;;
+  esac
+}
+
 aviso ""
-aviso "Programas para trabajar:"
+aviso "Programas para trabajar (revisando que tengas lo necesario):"
 PENDIENTES=""
 for p in git python node playwright; do
   if "tiene_$p"; then
-    aviso "  OK     $p"
+    aviso "  [listo]  $(titulo "$p")"
     continue
   fi
-  aviso "  FALTA  $p"
+  aviso "  [falta]  $(titulo "$p"), $(para_que "$p")"
   cmd="$(orden "$p")"
   if [ "$p" = "playwright" ] && ! tiene_node; then cmd=""; fi
-  if [ -n "$cmd" ] && preguntar "  ¿Instalo $p ahora? Se ejecutará: $cmd"; then
-    if sh -c "$cmd" && "tiene_$p"; then
-      aviso "  OK     $p instalado"
+  if [ -n "$cmd" ] && preguntar "           ¿Lo instalo ahora? Escribe S y presiona Enter (o N para dejarlo para después)"; then
+    aviso "           Instalando… puede tardar unos minutos. Si te pide una contraseña, es la de tu computador (no se ve mientras la escribes)."
+    if [ "$cmd" = "xcode-select --install" ]; then
+      xcode-select --install >/dev/null 2>&1 || true
+      aviso "           Se abrió una ventana de Apple: acepta, espera a que termine y vuelve a pegar este mismo comando."
+    elif sh -c "$cmd" </dev/tty >/dev/null 2>&1 && "tiene_$p"; then
+      aviso "  [listo]  $(titulo "$p")"
       continue
     fi
-    aviso "  No se pudo instalar $p."
   fi
-  PENDIENTES="$PENDIENTES $p"
+  PENDIENTES="$PENDIENTES, $(titulo "$p")"
 done
-if [ -n "$PENDIENTES" ]; then
-  aviso ""
-  aviso "Quedan por instalar:"
-  for p in $PENDIENTES; do
-    cmd="$(orden "$p")"
-    aviso "  $p: ${cmd:-descárgalo de $(descarga "$p")}"
-  done
-  [ "$(uname -s)" = "Darwin" ] && [ -z "$GESTOR" ] && aviso "  (Con Homebrew, https://brew.sh, se instalan con un solo comando.)"
-fi
+PENDIENTES="${PENDIENTES#, }"
 
 # ---- Que «empezar», «iniciar» o «configurar» activen el skill
+# (también repara los ajustes de una instalación anterior)
+PY=""
 for c in python3 python; do
   if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)' 2>/dev/null; then
-    aviso ""
-    "$c" "$DESTINO_REPO/$DESTINO_REL/scripts/activar.py" --registrar --raiz "$DESTINO_REPO" || true
+    PY="$c"
     break
   fi
 done
-
-if [ ! -d "$DESTINO_REPO/.git" ]; then
-  aviso "Ojo: esta carpeta no es un repositorio git. Funciona igual, pero te conviene versionarla (git init)."
-fi
-
 aviso ""
-aviso "Siguiente paso: abre Claude Code en tu carpeta y escribe «empezar»:"
-aviso "  cd \"$DESTINO_REPO\"; claude"
+if [ -z "$PY" ]; then
+  aviso "Falta un paso: Python no quedó instalado y sin él tu espacio no puede prepararse."
+  aviso "Instálalo desde https://www.python.org/downloads/ (el botón amarillo «Download Python»),"
+  aviso "cierra esta ventana, ábrela de nuevo y vuelve a pegar el mismo comando de instalación."
+  exit 0
+fi
+if ! "$PY" "$DESTINO_REPO/$DESTINO_REL/scripts/activar.py" --registrar --raiz "$DESTINO_REPO" >/dev/null 2>&1; then
+  aviso "Casi listo: no pude activar la palabra «empezar», pero puedes escribir /primeros-pasos en Claude."
+fi
+if [ -n "$PENDIENTES" ]; then
+  aviso "Quedó pendiente: $PENDIENTES. No te preocupes: Claude te ayuda a instalarlo cuando escribas «empezar»."
+  aviso ""
+fi
+aviso "Siguiente paso: copia estas dos líneas, pégalas aquí y presiona Enter:"
+aviso "  cd \"$DESTINO_REPO\""
+aviso "  claude"
+aviso "Cuando Claude se abra, escribe empezar y presiona Enter. Claude te guía desde ahí."

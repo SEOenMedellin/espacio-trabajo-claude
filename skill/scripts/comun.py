@@ -14,6 +14,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import sys
 import unicodedata
 from pathlib import Path
@@ -27,7 +28,7 @@ CONVENCIONES = SKILL / "convenciones"   # se copian a DOCS en cada espacio
 CONFIG = "espacio.json"
 ESTADO = ".espacio"                  # derivados: grafo, sesiones, respaldos
 DOCS = "docs/espacio-de-trabajo"     # convenciones copiadas al repositorio
-VERSION = "1.5.0"
+VERSION = "1.5.1"
 MARCA_INICIO = "<!-- primeros-pasos:inicio -->"
 MARCA_FIN = "<!-- primeros-pasos:fin -->"
 MESES = ("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")
@@ -225,14 +226,107 @@ def escribir(p: Path, texto: str) -> None:
         fh.write(texto)
 
 
+_PYTHON_CACHE: dict[tuple[str, ...], bool] = {}
+
+
+def _python_sirve(cmd: list[str]) -> bool:
+    """Está en el PATH, no es el acceso directo de la Microsoft Store
+    (WindowsApps\\python.exe, que abre la tienda o, desde Git Bash, falla con
+    «Permission denied») y es Python 3.10 o superior (en Mac, /usr/bin/python3
+    puede ser 3.9)."""
+    clave = tuple(cmd)
+    if clave not in _PYTHON_CACHE:
+        ruta = shutil.which(cmd[0])
+        ok = bool(ruta) and "windowsapps" not in ruta.lower()
+        if ok:
+            try:
+                ok = subprocess.run([ruta, *cmd[1:], "-c", "import sys; sys.exit(sys.version_info < (3, 10))"],
+                                    capture_output=True, timeout=15).returncode == 0
+            except (OSError, subprocess.SubprocessError):
+                ok = False
+        _PYTHON_CACHE[clave] = ok
+    return _PYTHON_CACHE[clave]
+
+
+def _candidatos_python() -> list[list[str]]:
+    # Windows: «python» es el nombre habitual y «py» el lanzador oficial.
+    # Mac y Linux: «python3»; «python» puede no existir o ser Python 2.
+    if os.name == "nt":
+        return [["python"], ["python3"], ["py", "-3"]]
+    return [["python3"], ["python"]]
+
+
+def python_hook() -> tuple[str, list[str]]:
+    """Programa y argumentos previos para lanzar Python desde un hook, sin consola."""
+    for cmd in _candidatos_python():
+        if _python_sirve(cmd):
+            return cmd[0], cmd[1:]
+    # Ningún Python adecuado en el PATH: el que está corriendo este script, en esta máquina.
+    return Path(sys.executable).as_posix(), []
+
+
 def python_cmd() -> str:
-    """Nombre del intérprete para los hooks: el primero que exista en el PATH."""
-    for nombre in ("python", "python3"):
-        if shutil.which(nombre):
-            return nombre
-    if shutil.which("py"):
-        return "py -3"
-    return "python"
+    """Intérprete para los comandos que se escriben en la documentación del espacio."""
+    exe, previos = python_hook()
+    return " ".join([f'"{exe}"' if " " in exe else exe, *previos])
+
+
+# Hooks del espacio: evento -> (script, timeout, matcher)
+HOOKS = {
+    "SessionStart": ("inicio.py", 30, None),
+    "Stop": ("cierre_check.py", 15, None),
+    "PreToolUse": ("orden_check.py", 15, "Write|Bash|PowerShell"),
+    "UserPromptSubmit": ("activar.py", 10, None),
+}
+
+
+def hook(raiz: Path, script: str, timeout: int) -> dict:
+    """Hook en formato exec («command» + «args»). Claude Code reemplaza
+    ${CLAUDE_PROJECT_DIR} por la carpeta del proyecto de quien lo usa y lanza
+    Python directamente, sin Git Bash ni PowerShell de por medio: no depende del
+    sistema, de la consola, de espacios en la ruta ni de dónde esté la carpeta."""
+    try:
+        ruta = "${CLAUDE_PROJECT_DIR}/" + SKILL.relative_to(raiz).as_posix()
+    except ValueError:
+        ruta = SKILL.as_posix()  # skill fuera del proyecto: su ruta en esta máquina
+    exe, previos = python_hook()
+    return {"type": "command", "command": exe, "args": [*previos, f"{ruta}/scripts/{script}"],
+            "timeout": timeout}
+
+
+def es_hook_propio(h: dict, script: str) -> bool:
+    """Hook de este skill, en formato viejo o nuevo, instalado o retirado a .claude/espacio."""
+    texto = " ".join([str(h.get("command", ""))] + [str(a) for a in h.get("args") or []]).replace("\\", "/")
+    return f"/scripts/{script}" in texto and any(
+        m in texto for m in ("primeros-pasos/", ".claude/espacio/", SKILL.as_posix()))
+
+
+def reparar_hooks(raiz: Path, agregar: set[str]) -> tuple[dict, list[str]] | None:
+    """Lee .claude/settings.json, pasa todos los hooks de este skill al formato
+    vigente y agrega los de `agregar` que falten. Lo demás se conserva tal cual.
+    Devuelve (settings, cambios), o None si el JSON está dañado."""
+    p = raiz / ".claude" / "settings.json"
+    try:
+        actual = json.loads(p.read_text(encoding="utf-8") or "{}") if p.is_file() else {}
+    except ValueError:
+        return None
+    cambios = []
+    hk = actual.setdefault("hooks", {})
+    for evento, (script, timeout, matcher) in HOOKS.items():
+        nuevo = hook(raiz, script, timeout)
+        hallado = False
+        for g in hk.get(evento, []):
+            for i, h in enumerate(g.get("hooks", [])):
+                if es_hook_propio(h, script):
+                    hallado = True
+                    if h != nuevo:
+                        g["hooks"][i] = nuevo
+                        cambios.append(f"{evento}:{script} (reparado)")
+        if not hallado and script in agregar:
+            grupo = {"matcher": matcher, "hooks": [nuevo]} if matcher else {"hooks": [nuevo]}
+            hk.setdefault(evento, []).append(grupo)
+            cambios.append(f"{evento}:{script}")
+    return actual, cambios
 
 
 def _sesion_ruta(raiz: Path, sid: str) -> Path:

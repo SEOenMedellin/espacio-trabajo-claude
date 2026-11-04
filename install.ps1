@@ -1,17 +1,18 @@
 # Instala o actualiza el skill Primer Paso (primeros-pasos) en la carpeta actual, sea cual sea su ruta.
 #
-#   irm https://raw.githubusercontent.com/davidortiz-ops/espacio-trabajo-claude/main/install.ps1 | iex
+#   irm https://raw.githubusercontent.com/SEOenMedellin/espacio-trabajo-claude/main/install.ps1 | iex
 #
 # $env:PRIMEROS_PASOS_ORIGEN = '<carpeta>' instala desde una copia local (lo usan las pruebas).
 & {
     $ErrorActionPreference = 'Stop'
     $ProgressPreference = 'SilentlyContinue'
 
-    $repo = 'davidortiz-ops/espacio-trabajo-claude'
+    $repo = 'SEOenMedellin/espacio-trabajo-claude'
     $rama = if ($env:PRIMEROS_PASOS_RAMA) { $env:PRIMEROS_PASOS_RAMA } else { 'main' }
 
     function Falla($texto) {
         Write-Host "No se pudo instalar: $texto" -ForegroundColor Red
+        Write-Host 'Si no sabes cómo seguir, copia este mensaje y envíaselo a quien te compartió el enlace.'
         throw 'instalacion-cancelada'
     }
 
@@ -79,10 +80,14 @@
             if (Test-Path $destino) {
                 $accion = 'actualizado'
                 $anterior = "$destino.anterior"
-                if (Test-Path $anterior) { Remove-Item -Recurse -Force $anterior }
-                Move-Item $destino $anterior
+                try {
+                    if (Test-Path $anterior) { Remove-Item -Recurse -Force $anterior }
+                    Move-Item $destino $anterior
+                } catch {
+                    Falla 'algún archivo del skill está en uso. Cierra Claude Code (y los editores abiertos en esta carpeta) y vuelve a ejecutar el comando.'
+                }
                 Move-Item (Join-Path $tmp 'skill') $destino
-                Remove-Item -Recurse -Force $anterior
+                Remove-Item -Recurse -Force $anterior -ErrorAction SilentlyContinue
             } else {
                 $accion = 'instalado'
                 Move-Item (Join-Path $tmp 'skill') $destino
@@ -92,27 +97,46 @@
         }
 
         Write-Host ''
-        Write-Host "Listo: Primer Paso quedó $accion en $destino" -ForegroundColor Green
+        Write-Host "Listo: Primer Paso quedó $accion en tu carpeta $destinoRepo" -ForegroundColor Green
 
         # ---- Programas para trabajar: Git, Python, Node.js y Playwright
         function Refrescar-Path {
             $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' +
                         [Environment]::GetEnvironmentVariable('Path', 'User')
         }
-        function Tiene-Python {
-            foreach ($c in @('python', 'python3', 'py')) {
-                $cmd = Get-Command $c -ErrorAction SilentlyContinue
+        # Ejecuta un programa sin que su salida de error tumbe el instalador: en
+        # PowerShell 5.1, con ErrorActionPreference = Stop, cualquier línea en
+        # stderr de un programa externo se vuelve una excepción.
+        function Ejecutar([string]$exe, [string[]]$argumentos) {
+            $previo = $ErrorActionPreference
+            $ErrorActionPreference = 'Continue'
+            try {
+                $salida = & $exe @argumentos 2>&1 | ForEach-Object { "$_" }
+                return @{ ok = ($LASTEXITCODE -eq 0); salida = ($salida -join "`n") }
+            } catch {
+                return @{ ok = $false; salida = '' }
+            } finally {
+                $ErrorActionPreference = $previo
+            }
+        }
+        # El primer Python 3.10+ real: no el acceso directo de la Microsoft Store.
+        function Buscar-Python {
+            foreach ($c in @(@('python'), @('python3'), @('py', '-3'))) {
+                $cmd = Get-Command $c[0] -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
                 if ($cmd -and $cmd.Source -notlike '*WindowsApps*') {
-                    & $c -c 'import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)' 2>$null
-                    if ($LASTEXITCODE -eq 0) { return $true }
+                    $previos = @($c | Select-Object -Skip 1)
+                    $r = Ejecutar $cmd.Source ($previos + @('-c', 'import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)'))
+                    if ($r.ok) { return @{ exe = $cmd.Source; previos = $previos } }
                 }
             }
-            return $false
+            return $null
         }
+        function Tiene-Python { return [bool](Buscar-Python) }
         function Tiene-Node {
             if (-not (Get-Command node -ErrorAction SilentlyContinue)) { return $false }
-            $v = (& node --version) -replace '^v(\d+).*', '$1'
-            return ([int]$v -ge 18)
+            $r = Ejecutar 'node' @('--version')
+            if (-not $r.ok -or $r.salida -notmatch 'v(\d+)') { return $false }
+            return ([int]$Matches[1] -ge 18)
         }
         function Tiene-Playwright { return [bool](Get-Command playwright -ErrorAction SilentlyContinue) }
 
@@ -125,64 +149,70 @@
             @{ nombre = 'node'; prueba = { Tiene-Node }; descarga = 'https://nodejs.org/'
                orden = $(if ($hayWinget) { 'winget install -e --id OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements' }) },
             @{ nombre = 'playwright'; prueba = { Tiene-Playwright }; descarga = 'https://playwright.dev/docs/intro'
-               orden = 'npm install -g playwright; if ($?) { npx playwright install chromium }' }
+               # npm.cmd y no npm: npm.ps1 lo bloquea la política de scripts que Windows trae por defecto.
+               orden = 'npm.cmd install -g playwright; if ($?) { npx.cmd playwright install chromium }' }
         )
         $interactivo = (-not $env:PRIMEROS_PASOS_SIN_PROGRAMAS) -and (-not [Console]::IsInputRedirected) -and
                        [Environment]::UserInteractive
 
+        $titulos = @{ git = 'Git'; python = 'Python'; node = 'Node.js'; playwright = 'Playwright' }
+        $paraQue = @{ git = 'guarda el historial de tus archivos'; python = 'hace funcionar tu espacio de trabajo'
+                      node = 'lo necesitan algunas herramientas'; playwright = 'permite a Claude revisar páginas web' }
+
         Write-Host ''
-        Write-Host 'Programas para trabajar:'
+        Write-Host 'Programas para trabajar (revisando que tengas lo necesario):'
         $pendientes = @()
         foreach ($p in $programas) {
-            if (& $p.prueba) { Write-Host "  OK     $($p.nombre)"; continue }
-            Write-Host "  FALTA  $($p.nombre)" -ForegroundColor Yellow
+            $nombre = $titulos[$p.nombre]
+            if (& $p.prueba) { Write-Host "  [listo]  $nombre" -ForegroundColor Green; continue }
+            Write-Host "  [falta]  $nombre, $($paraQue[$p.nombre])" -ForegroundColor Yellow
             $orden = $p.orden
             if ($p.nombre -eq 'playwright' -and -not (Tiene-Node)) { $orden = $null }
             if ($orden -and $interactivo) {
-                $r = Read-Host "  ¿Instalo $($p.nombre) ahora? Se ejecutará: $orden [S/n]"
-                if ($r -notmatch '^(n|no)$') {
-                    try { Invoke-Expression $orden } catch { }
+                $r = Read-Host "           ¿Lo instalo ahora? Escribe S y presiona Enter (o N para dejarlo para después)"
+                if ($r -notmatch '^\s*(n|no)\s*$') {
+                    Write-Host '           Instalando… puede tardar unos minutos. Si Windows pregunta si permites cambios, responde Sí.'
+                    try { Invoke-Expression $orden | Out-Null } catch { }
                     Refrescar-Path
-                    if (& $p.prueba) { Write-Host "  OK     $($p.nombre) instalado" -ForegroundColor Green; continue }
-                    Write-Host "  No se pudo instalar $($p.nombre)." -ForegroundColor Yellow
+                    if (& $p.prueba) { Write-Host "  [listo]  $nombre" -ForegroundColor Green; continue }
                 }
             }
-            $pendientes += $p
-        }
-        if ($pendientes.Count -gt 0) {
-            Write-Host ''
-            Write-Host 'Quedan por instalar:' -ForegroundColor Yellow
-            foreach ($p in $pendientes) {
-                $o = $p.orden
-                if ($p.nombre -eq 'playwright' -and -not (Tiene-Node)) { $o = "$($p.orden)  (después de Node.js)" }
-                if ($o) { Write-Host "  $($p.nombre): $o" } else { Write-Host "  $($p.nombre): descárgalo de $($p.descarga)" }
-            }
-            Write-Host '  Después de instalar, cierra y vuelve a abrir la terminal.'
+            $pendientes += $nombre
         }
 
         # ---- Que «empezar», «iniciar» o «configurar» activen el skill
-        foreach ($c in @('python', 'python3', 'py')) {
-            $cmd = Get-Command $c -ErrorAction SilentlyContinue
-            if ($cmd -and $cmd.Source -notlike '*WindowsApps*') {
-                & $c -c 'import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)' 2>$null
-                if ($LASTEXITCODE -eq 0) {
-                    Write-Host ''
-                    & $c (Join-Path $destino 'scripts\activar.py') --registrar --raiz $destinoRepo
-                    break
-                }
-            }
-        }
-
-        if (-not (Test-Path (Join-Path $destinoRepo '.git'))) {
-            Write-Host 'Ojo: esta carpeta no es un repositorio git. Funciona igual, pero te conviene versionarla (git init).' -ForegroundColor Yellow
+        # (también repara los ajustes de una instalación anterior)
+        $py = Buscar-Python
+        $activado = $false
+        if ($py) {
+            $r = Ejecutar $py.exe ($py.previos + @((Join-Path $destino 'scripts\activar.py'), '--registrar', '--raiz', $destinoRepo))
+            $activado = $r.ok
         }
 
         Write-Host ''
-        Write-Host 'Siguiente paso: abre Claude Code en tu carpeta y escribe «empezar»:'
-        Write-Host "  cd `"$destinoRepo`"; claude"
+        if (-not $py) {
+            Write-Host 'Falta un paso: Python no quedó instalado y sin él tu espacio no puede prepararse.' -ForegroundColor Yellow
+            Write-Host 'Instálalo desde https://www.python.org/downloads/ (marca la casilla «Add python.exe to PATH»),'
+            Write-Host 'cierra esta ventana, ábrela de nuevo y vuelve a pegar el mismo comando de instalación.'
+            return
+        }
+        if (-not $activado) {
+            Write-Host 'Casi listo: no pude activar la palabra «empezar», pero puedes escribir /primeros-pasos en Claude.' -ForegroundColor Yellow
+        }
+        if ($pendientes.Count -gt 0) {
+            Write-Host ("Quedó pendiente: " + ($pendientes -join ', ') + '. No te preocupes: Claude te ayuda a instalarlo cuando escribas «empezar».')
+            Write-Host ''
+        }
+        Write-Host 'Siguiente paso: escribe la palabra claude y presiona Enter.' -ForegroundColor Green
+        Write-Host 'Cuando Claude se abra, escribe empezar y presiona Enter. Claude te guía desde ahí.'
+        Write-Host ''
+        Write-Host '(Otro día, para volver, abre PowerShell en esta misma carpeta y escribe claude:'
+        Write-Host "  cd `"$destinoRepo`""
+        Write-Host '  claude )'
     } catch {
         if ($_.Exception.Message -ne 'instalacion-cancelada') {
-            Write-Host "No se pudo instalar: $($_.Exception.Message)" -ForegroundColor Red
+            Write-Host 'No se pudo instalar. Vuelve a pegar el mismo comando; si se repite, copia este mensaje y envíaselo a quien te compartió el enlace:' -ForegroundColor Red
+            Write-Host "  $($_.Exception.Message)"
         }
     }
 }

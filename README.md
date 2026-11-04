@@ -8,10 +8,10 @@ Claude aprende de tus correcciones y ves cuánto tiempo te ahorras.
 
 ## Instalación
 
-Necesitas tener [Claude Code](https://claude.com/claude-code) instalado. Haz
-los pasos en orden: copia cada comando completo, pégalo en la terminal y
-presiona Enter. La [guía de instalación](docs/instalacion.md) explica cada
-paso con más detalle.
+Necesitas tener [Claude Code](https://claude.com/claude-code) instalado (la
+[guía de instalación](docs/instalacion.md) trae el comando para instalarlo en
+Windows y en Mac). Haz los pasos en orden: copia cada comando completo, pégalo
+en la terminal y presiona Enter. La guía explica cada paso con más detalle.
 
 ### En Windows
 
@@ -35,7 +35,7 @@ de ella (esto reemplaza los pasos 1 y 2).
 Mac, que en PowerShell falla:
 
 ```powershell
-irm https://raw.githubusercontent.com/davidortiz-ops/espacio-trabajo-claude/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/SEOenMedellin/espacio-trabajo-claude/main/install.ps1 | iex
 ```
 
 **4. Abre Claude y escribe `empezar`:**
@@ -62,7 +62,7 @@ cd "/ruta/de/tu/carpeta"
 Mac: en Windows falla con «parámetro 'fsSL'».
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/davidortiz-ops/espacio-trabajo-claude/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/SEOenMedellin/espacio-trabajo-claude/main/install.sh | bash
 ```
 
 **4. Abre Claude y escribe `empezar`:**

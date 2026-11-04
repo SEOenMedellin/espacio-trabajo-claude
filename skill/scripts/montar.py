@@ -583,28 +583,13 @@ def gitignore(raiz: Path, rep: Reporte, seco: bool) -> None:
 
 def hooks(raiz: Path, v: dict, rep: Reporte, seco: bool) -> None:
     p = raiz / ".claude" / "settings.json"
-    deseado = json.loads(render((PLANTILLA / "settings-hooks.json").read_text(encoding="utf-8"), v))
-    if p.exists():
-        try:
-            actual = json.loads(p.read_text(encoding="utf-8") or "{}")
-        except ValueError as e:
-            rep("error", ".claude/settings.json", f"JSON inválido ({e}); corrígelo sin quitar entradas y repite")
-            return
-    else:
-        actual = {}
-    agregados = []
-    hk = actual.setdefault("hooks", {})
-    for evento, grupos in deseado["hooks"].items():
-        existentes = json.dumps(hk.get(evento, []))
-        for g in grupos:
-            cmd = g["hooks"][0]["command"]
-            marca = cmd.split("/scripts/")[-1].split('"')[0]
-            if marca == "activar.py" and not comun.activo():
-                continue  # el skill se desactivó o se eliminó: sin activación por palabras
-            if marca in existentes:
-                continue
-            hk.setdefault(evento, []).append(g)
-            agregados.append(f"{evento}:{marca}")
+    # Sin activación por palabras si el skill se desactivó o se eliminó.
+    agregar = {s for s, _, _ in comun.HOOKS.values() if s != "activar.py" or comun.activo()}
+    res = comun.reparar_hooks(raiz, agregar)
+    if res is None:
+        rep("error", ".claude/settings.json", "JSON inválido; corrígelo sin quitar entradas y repite")
+        return
+    actual, agregados = res
     if not agregados:
         rep("ya existía", ".claude/settings.json")
         return

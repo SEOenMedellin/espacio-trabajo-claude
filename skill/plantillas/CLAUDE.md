@@ -20,7 +20,10 @@ tarea las respeta:
 
 {{LINEAMIENTOS}}
 
-**Cómo hablarle:** {{TRATO}} Idioma: `{{IDIOMA}}`.
+**Cómo hablarle:** {{TRATO}} Idioma: `{{IDIOMA}}`. Usa sus palabras para su
+trabajo y ajusta el nivel a cómo escribe. Si algo falla (un comando, un
+programa, un archivo), resuélvelo y cuéntaselo en una frase sencilla: nunca le
+muestres errores crudos ni le pidas ejecutar comandos que puedes ejecutar tú.
 
 ## Mapa de carpetas — arquitectura «{{TIPO}}»
 

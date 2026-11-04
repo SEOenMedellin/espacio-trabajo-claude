@@ -28,7 +28,7 @@ for _f in (sys.stdout, sys.stderr):
 SKILL = Path(__file__).resolve().parents[1] / "skill"
 sys.path.insert(0, str(SKILL / "scripts"))
 import comun  # noqa: E402
-BASE = Path(tempfile.mkdtemp(prefix="pp-"))
+BASE = Path(tempfile.mkdtemp(prefix="pp con espacios-"))  # con espacios, como muchas carpetas personales
 SILENCIO = "-q" in sys.argv
 fallos = []
 
@@ -164,6 +164,42 @@ if "telemetria" not in json.dumps(st) or "orden_check" not in json.dumps(st):
     fallos.append("settings no conservó la telemetría o no agregó hooks")
 if "activar.py" not in json.dumps(st.get("hooks", {}).get("UserPromptSubmit", [])):
     fallos.append("montar no registró el hook de activación")
+
+# hooks agnósticos: formato exec, sin variables de consola, y se ejecutan como
+# lo hace Claude Code (reemplaza ${CLAUDE_PROJECT_DIR} y lanza sin shell),
+# desde una carpeta con espacios y sin que el cwd sea el proyecto.
+propios = [h for gs in st["hooks"].values() for g in gs for h in g["hooks"]
+           if any(comun.es_hook_propio(h, s) for s, _, _ in comun.HOOKS.values())]
+if len(propios) != 4:
+    fallos.append(f"se esperaban 4 hooks del espacio, hay {len(propios)}")
+for h in propios:
+    if "args" not in h or "$" in h["command"] or "\\" in json.dumps(h["args"]) \
+            or not h["args"][-1].startswith("${CLAUDE_PROJECT_DIR}/.claude/skills/primeros-pasos/scripts/"):
+        fallos.append(f"hook no agnóstico: {h}")
+        continue
+    args = [a.replace("${CLAUDE_PROJECT_DIR}", str(A)) for a in h["args"]]
+    exe = shutil.which(h["command"]) or h["command"]
+    r = subprocess.run([exe, *args], cwd=tempfile.gettempdir(), input="{}", capture_output=True, text=True,
+                       encoding="utf-8", env=dict(os.environ, CLAUDE_PROJECT_DIR=str(A)))
+    if r.returncode != 0:
+        fallos.append(f"el hook {args[-1]} falló al ejecutarse sin consola: {r.stderr[:300]}")
+# una instalación vieja (comando con $CLAUDE_PROJECT_DIR) se repara al reinstalar
+viejo = json.loads((A / ".claude/settings.json").read_text(encoding="utf-8"))
+for gs in viejo["hooks"].values():
+    for g in gs:
+        for i, h in enumerate(g["hooks"]):
+            if "args" in h:
+                g["hooks"][i] = {"type": "command", "timeout": h["timeout"],
+                                 "command": f'python "$CLAUDE_PROJECT_DIR/.claude/skills/primeros-pasos/scripts/'
+                                            f'{h["args"][-1].rsplit("/", 1)[-1]}"'}
+(A / ".claude/settings.json").write_text(json.dumps(viejo), encoding="utf-8")
+if "formato viejo" not in run(A, ["verificar.py"]).stdout:
+    fallos.append("verificar no detecta hooks en formato viejo")
+run(A, ["activar.py", "--registrar"], esperado=0)
+reparado = json.loads((A / ".claude/settings.json").read_text(encoding="utf-8"))
+if "$CLAUDE_PROJECT_DIR" in json.dumps(reparado) or json.dumps(reparado).count('"args"') != 4 \
+        or "telemetria" not in json.dumps(reparado):
+    fallos.append("reinstalar no reparó los hooks viejos o tocó los ajenos")
 
 # activación con «empezar», «iniciar», «configurar»…
 for texto, debe in [("empezar", True), ("Iniciar", True), ("¡Empecemos!", True), ("configurar", True),
@@ -610,7 +646,7 @@ for nombre, cmd in instaladores:
         log(f"\n$ {nombre} (vuelta {vuelta}) → {r.returncode}\n{(r.stdout + r.stderr).strip()[:800]}")
         if palabra not in r.stdout or not (d / ".claude/skills/primeros-pasos/SKILL.md").is_file():
             fallos.append(f"{nombre} vuelta {vuelta}: no quedó {palabra}")
-        if not all(x in r.stdout for x in ("Programas para trabajar", "git", "python", "node", "playwright")):
+        if not all(x in r.stdout for x in ("Programas para trabajar", "Git", "Python", "Node.js", "Playwright")):
             fallos.append(f"{nombre} no revisó Git, Python, Node.js y Playwright")
     hooks_inst = json.loads((d / ".claude/settings.json").read_text(encoding="utf-8")).get("hooks", {})         if (d / ".claude/settings.json").is_file() else {}
     if json.dumps(hooks_inst).count("activar.py") != 1:
